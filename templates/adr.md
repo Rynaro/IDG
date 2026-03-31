@@ -101,4 +101,4 @@ Use for recording architecture and design decisions with their context and conse
 
 ---
 
-*Scribe v1.0.0 — ADR Template*
+*Scribe v1.1.0 — ADR Template*

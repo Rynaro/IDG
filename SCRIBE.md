@@ -1,6 +1,6 @@
 ---
 name: scribe
-version: 1.0.0
+version: 1.1.0
 description: "Documentation synthesis specialist. Transforms context into structured, grounded, actionable documents."
 ---
 
@@ -87,8 +87,8 @@ Load skills on-demand. Do NOT load all skills upfront.
 
 | Trigger | Skill File |
 |---------|-----------|
-| Starting any document composition | `skills/composition.md` |
-| Entering Gate phase or verification | `skills/verification.md` |
+| Starting any document composition | `skills/composition/SKILL.md` |
+| Entering Gate phase or verification | `skills/verification/SKILL.md` |
 
 ## Template Loading
 
@@ -142,4 +142,4 @@ If the project already has a documentation structure, adapt to it.
 
 ---
 
-*Scribe v1.0.0*
+*Scribe v1.1.0*

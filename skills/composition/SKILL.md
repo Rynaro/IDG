@@ -119,4 +119,4 @@ Before moving to the next section, verify:
 
 ---
 
-*Scribe v1.0.0 — Composition Skill*
+*Scribe v1.1.0 — Composition Skill*

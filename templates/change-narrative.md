@@ -94,4 +94,4 @@ Use for release notes, changelogs, and PR summaries — narrating what changed a
 
 ---
 
-*Scribe v1.0.0 — Change Narrative Template*
+*Scribe v1.1.0 — Change Narrative Template*

@@ -102,4 +102,4 @@ Use for documenting coding sessions — what happened, what changed, what was de
 
 ---
 
-*Scribe v1.0.0 — Session Chronicle Template*
+*Scribe v1.1.0 — Session Chronicle Template*

@@ -120,4 +120,4 @@ Use the most specific identifier available:
 
 ---
 
-*Scribe v1.0.0 — Verification Skill*
+*Scribe v1.1.0 — Verification Skill*

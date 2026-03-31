@@ -8,11 +8,14 @@ Give it session logs, code diffs, decision notes, or any raw material — it pro
 
 ```
 scribe/
+├── install.sh                  # Install into any project
 ├── SCRIBE.md                   # Agent entry point (always loaded)
 ├── DESIGN-RATIONALE.md         # Research → design decision mapping
 ├── skills/                     # Loaded on-demand per phase
-│   ├── composition.md          # Writing methodology + style standards
-│   └── verification.md         # CHT verification gates + provenance
+│   ├── composition/
+│   │   └── SKILL.md            # Writing methodology + style standards
+│   └── verification/
+│       └── SKILL.md            # CHT verification gates + provenance
 └── templates/                  # Document skeletons per type
     ├── session-chronicle.md    # Long coding session documentation
     ├── adr.md                  # Architecture Decision Record
@@ -22,25 +25,37 @@ scribe/
 
 ## Quick Start
 
-### Embedding in a project
-
-Copy or submodule this repository into your project:
+### Install into a project
 
 ```bash
-# Git submodule
-git submodule add https://github.com/Rynaro/scribe agents/scribe
+git clone https://github.com/Rynaro/scribe
+bash scribe/install.sh [target-directory]
+```
 
-# Or direct copy
+Default target: `./agents/scribe`. Then point your AI tooling at the installed `SCRIBE.md`:
+
+| Tooling | How to load |
+|---------|-------------|
+| **Claude Code** | `@agents/scribe/SCRIBE.md` or add to `CLAUDE.md` |
+| **Cursor** | Add path to `.cursorrules` or custom instructions |
+| **Windsurf** | Add path to `.windsurfrules` |
+| **Raw API / any LLM** | Load `SCRIBE.md` as the system prompt |
+
+### Alternative: Git submodule
+
+```bash
+git submodule add https://github.com/Rynaro/scribe agents/scribe
+```
+
+### Alternative: Direct copy
+
+```bash
 cp -r scribe/ your-project/agents/scribe/
 ```
 
-All internal references use relative paths. Works from any location.
+All internal paths are relative. Works from any location.
 
-### Using the Scribe
-
-Point your AI tool at `SCRIBE.md` as the system prompt or agent instructions. Skills and templates load on-demand — do not load everything upfront.
-
-The Scribe produces four document types out of the box:
+## Document Types
 
 | Type | Use When |
 |------|----------|
@@ -53,7 +68,7 @@ Custom document types are supported — the Scribe builds a skeleton from contex
 
 ## Design Principles
 
-**Minimal entry point**: `SCRIBE.md` is the only file loaded at start. Skills and templates load on-demand per phase.
+**Minimal entry point**: `SCRIBE.md` is the only file loaded at start. Skills and templates load on-demand per phase — do not pre-load them.
 
 **Token-efficient**: Typical working set is ~2,200 tokens (entry point + one skill + one template). Leaves maximum context budget for source material.
 
@@ -82,8 +97,7 @@ See [DESIGN-RATIONALE.md](DESIGN-RATIONALE.md) for the full mapping of research 
 - **CorrectBench** (2025): Evidence for bounding self-correction in open-ended tasks
 - **Anthropic Context Engineering** (Sept 2025): Context budget discipline
 - **APIVR-Δ v3.0**: Layered loading architecture, on-demand skills, token budget methodology
-- **CrewAI/Azure patterns**: Invocation architecture
 
 ---
 
-*Scribe v1.0.0*
+*Scribe v1.1.0*

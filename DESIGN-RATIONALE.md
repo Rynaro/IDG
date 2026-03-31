@@ -107,8 +107,8 @@ This thesis determines every design boundary. The research literature (DocAgent,
 | Component | Estimated Tokens | When Loaded |
 |-----------|-----------------|-------------|
 | SCRIBE.md (entry point) | ~900 | Always when Scribe active |
-| composition.md | ~913 | Draft phase |
-| verification.md | ~834 | Gate phase |
+| skills/composition/SKILL.md | ~913 | Draft phase |
+| skills/verification/SKILL.md | ~834 | Gate phase |
 | Template (largest: runbook) | ~499 | Per document type |
 
 **Typical working set**: SCRIBE.md + one skill + one template ≈ **2,200 tokens**
@@ -134,4 +134,4 @@ This is well under the ~4,350 token working set of comparable agents and signifi
 
 ---
 
-*Scribe v1.0.0 — Design Rationale*
+*Scribe v1.1.0 — Design Rationale*
