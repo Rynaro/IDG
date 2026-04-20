@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Rynaro/eidolons-eiis/schemas/install.manifest.v1.json",
+  "title": "EIIS Install Manifest v1",
+  "description": "Written by install.sh into the target directory after a successful install.",
+  "type": "object",
+  "required": ["eidolon", "version", "methodology", "installed_at", "target", "hosts_wired", "files_written"],
+  "properties": {
+    "eidolon": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "methodology": {
+      "type": "string"
+    },
+    "installed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "target": {
+      "type": "string"
+    },
+    "hosts_wired": {
+      "type": "array",
+      "items": {
+        "enum": ["claude-code", "copilot", "cursor", "opencode", "raw"]
+      }
+    },
+    "files_written": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256", "role"],
+        "properties": {
+          "path":   { "type": "string" },
+          "sha256": { "type": "string" },
+          "role":   { "enum": ["entry-point", "spec", "skill", "template", "dispatch", "manifest", "other"] },
+          "mode":   { "enum": ["created", "appended", "overwritten"] }
+        }
+      }
+    },
+    "handoffs_declared": {
+      "type": "object",
+      "properties": {
+        "upstream":   { "type": "array", "items": { "type": "string" } },
+        "downstream": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "token_budget": {
+      "type": "object",
+      "properties": {
+        "entry":              { "type": "integer" },
+        "working_set_target": { "type": "integer" }
+      }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "reads_repo":    { "type": "boolean" },
+        "reads_network": { "type": "boolean" },
+        "writes_repo":   { "type": "boolean" },
+        "persists":      { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
