@@ -1,0 +1,68 @@
+# Phase 5 — Execute Log
+
+## Directories created
+[WROTE] .github/
+[WROTE] hosts/
+[WROTE] evals/
+[WROTE] schemas/
+
+## G-01 — agent.md (CREATE)
+[WROTE] agent.md — compact entry point, 310 tokens BPE (budget ≤ 1000 ✓)
+
+## G-02 — AGENTS.md (CREATE)
+[WROTE] AGENTS.md — §5 frontmatter compliant
+
+## G-03 — CLAUDE.md (CREATE)
+[WROTE] CLAUDE.md — load-order pointer + consumer usage section
+
+## G-04 — .github/copilot-instructions.md (CREATE)
+[WROTE] .github/copilot-instructions.md — Copilot primary entry
+
+## G-05 — INSTALL.md (CREATE)
+[WROTE] INSTALL.md — human cross-host install guide (all 4 hosts + raw + submodule)
+
+## G-06 — CHANGELOG.md (CREATE)
+[WROTE] CHANGELOG.md — Keep-a-Changelog format, [Unreleased] EIIS section + v1.1.0 + v1.0.0
+
+## G-07 — hosts/claude-code.md (CREATE)
+[WROTE] hosts/claude-code.md
+
+## G-08 — hosts/copilot.md (CREATE)
+[WROTE] hosts/copilot.md
+
+## G-09 — hosts/cursor.md (CREATE)
+[WROTE] hosts/cursor.md
+
+## G-10 — hosts/opencode.md (CREATE)
+[WROTE] hosts/opencode.md
+
+## G-11 — evals/canary-missions.md (CREATE)
+[WROTE] evals/canary-missions.md — two smoke missions (ADR synthesis + insufficient context handling)
+
+## G-12 — schemas/install.manifest.v1.json (CREATE)
+[WROTE] schemas/install.manifest.v1.json — EIIS §4 JSON Schema draft 2020-12
+
+## G-13 — install.sh (PATCH)
+[WROTE] install.sh — replaced with full §3 interface:
+  - Named variables: EIDOLON_NAME, EIDOLON_VERSION, METHODOLOGY
+  - Arg parsing loop: --target, --hosts, --force, --dry-run, --non-interactive, --manifest-only, --version, -h/--help
+  - Host detection: detect_hosts() checks .claude/, CLAUDE.md, .github/, .cursor/, .cursorrules, .opencode/
+  - Idempotency: reads install.manifest.json (not SCRIBE.md), respects --force and --non-interactive
+  - Per-host dispatch wiring: claude-code (CLAUDE.md), copilot (.github/copilot-instructions.md), cursor (.cursor/rules/scribe.mdc), opencode (.opencode/agents/scribe.md)
+  - Manifest emission: install.manifest.json with sha256 per file (portable: sha256sum / shasum / openssl)
+  - Token measurement: wc -w / 0.75 on agent.md
+  - Smoke test banner
+  - --dry-run guards all writes
+  - Preserved original copy-files logic (lines for SCRIBE.md, DESIGN-RATIONALE.md, skills/, templates/)
+
+## Verification (real install to /tmp)
+- bash install.sh --help → OK
+- bash install.sh --version → 1.1.0 ✓
+- bash install.sh --dry-run → all 13 paths printed ✓
+- bash install.sh --target /tmp/eiis-verify-scribe-* --hosts none --non-interactive → OK
+  - agent.md: 310 tokens ✓
+  - install.manifest.json: valid structure ✓
+  - sha256 hashes: present for all 9 files ✓
+
+## BLOCKED items
+None.
