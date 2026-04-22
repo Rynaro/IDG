@@ -3,14 +3,14 @@
 ## 1. Install
 
 ```bash
-bash install.sh --target ./agents/scribe --hosts cursor
+bash install.sh --target ./.eidolons/idg --hosts cursor
 ```
 
-The installer creates `.cursor/rules/scribe.mdc`.
+The installer creates `.cursor/rules/idg.mdc`.
 
 ## 2. Config
 
-The installed rule file at `.cursor/rules/scribe.mdc`:
+The installed rule file at `.cursor/rules/idg.mdc`:
 
 ```markdown
 ---
@@ -18,7 +18,7 @@ alwaysApply: false
 ---
 # SCRIBE — scribe
 
-See `agents/scribe/agent.md` for the SCRIBE methodology entry point.
+See `.eidolons/idg/agent.md` for the SCRIBE methodology entry point.
 ```
 
 `alwaysApply: false` means the rule loads on-demand when you reference it. To always load it, change to `alwaysApply: true` (adds ~800 tokens to every session).
@@ -28,7 +28,7 @@ See `agents/scribe/agent.md` for the SCRIBE methodology entry point.
 For older Cursor versions, add to `.cursorrules`:
 
 ```
-agents/scribe/agent.md
+.eidolons/idg/agent.md
 ```
 
 ## 3. Verify
@@ -48,9 +48,9 @@ Or reference the rule file directly:
 ## 4. Troubleshooting
 
 **Rule not appearing in Cursor's rule list**
-- Verify `.cursor/rules/scribe.mdc` exists and has valid frontmatter
+- Verify `.cursor/rules/idg.mdc` exists and has valid frontmatter
 - Restart Cursor after adding new rule files
 
 **Skills/templates not loading**
-- Confirm `agents/scribe/skills/` and `agents/scribe/templates/` are present
+- Confirm `.eidolons/idg/skills/` and `.eidolons/idg/templates/` are present
 - Cursor does not auto-load skill files — the Scribe requests them; provide the content when asked

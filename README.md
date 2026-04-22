@@ -32,11 +32,11 @@ git clone https://github.com/Rynaro/scribe
 bash scribe/install.sh [target-directory]
 ```
 
-Default target: `./agents/scribe`. Then point your AI tooling at the installed `SCRIBE.md`:
+Default target: `./.eidolons/idg`. Then point your AI tooling at the installed `SCRIBE.md`:
 
 | Tooling | How to load |
 |---------|-------------|
-| **Claude Code** | `@agents/scribe/SCRIBE.md` or add to `CLAUDE.md` |
+| **Claude Code** | `@.eidolons/idg/SCRIBE.md` or add to `CLAUDE.md` |
 | **Cursor** | Add path to `.cursorrules` or custom instructions |
 | **Windsurf** | Add path to `.windsurfrules` |
 | **Raw API / any LLM** | Load `SCRIBE.md` as the system prompt |
@@ -44,13 +44,13 @@ Default target: `./agents/scribe`. Then point your AI tooling at the installed `
 ### Alternative: Git submodule
 
 ```bash
-git submodule add https://github.com/Rynaro/scribe agents/scribe
+git submodule add https://github.com/Rynaro/scribe .eidolons/idg
 ```
 
 ### Alternative: Direct copy
 
 ```bash
-cp -r scribe/ your-project/agents/scribe/
+cp -r scribe/ your-project/.eidolons/idg/
 ```
 
 All internal paths are relative. Works from any location.

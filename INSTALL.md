@@ -15,14 +15,14 @@ cd your-project
 bash ../scribe/install.sh
 ```
 
-Default target: `./agents/scribe`. Then wire your AI tooling (see host sections below).
+Default target: `./.eidolons/idg`. Then wire your AI tooling (see host sections below).
 
 ## Options
 
 ```
 bash install.sh [OPTIONS]
 
-  --target DIR          Target install dir (default: ./agents/scribe)
+  --target DIR          Target install dir (default: ./.eidolons/idg)
   --hosts LIST          claude-code,copilot,cursor,opencode,all (default: auto)
   --force               Overwrite existing install
   --dry-run             Print actions, no writes
@@ -38,18 +38,18 @@ bash install.sh [OPTIONS]
 
 **Install:**
 ```bash
-bash install.sh --target ./agents/scribe --hosts claude-code
+bash install.sh --target ./.eidolons/idg --hosts claude-code
 ```
 
 **Wire:**
 Add to your project's `CLAUDE.md`:
 ```
-@agents/scribe/agent.md
+@.eidolons/idg/agent.md
 ```
 
 Or reference inline:
 ```
-@agents/scribe/agent.md
+@.eidolons/idg/agent.md
 ```
 
 **Verify:**
@@ -61,13 +61,13 @@ Open a session and run: `"Using Scribe, write a one-sentence ADR for choosing Po
 
 **Install:**
 ```bash
-bash install.sh --target ./agents/scribe --hosts copilot
+bash install.sh --target ./.eidolons/idg --hosts copilot
 ```
 
 **Wire:**
 The installer appends to or creates `.github/copilot-instructions.md`. Verify it contains:
 ```markdown
-See `agents/scribe/agent.md` for the SCRIBE methodology entry point.
+See `.eidolons/idg/agent.md` for the SCRIBE methodology entry point.
 ```
 
 **Verify:**
@@ -79,11 +79,11 @@ Open a Copilot Chat and ask: `"Follow the Scribe SCRIBE cycle to produce an ADR 
 
 **Install:**
 ```bash
-bash install.sh --target ./agents/scribe --hosts cursor
+bash install.sh --target ./.eidolons/idg --hosts cursor
 ```
 
 **Wire:**
-The installer creates `.cursor/rules/scribe.mdc`. Activate it in Cursor's rules panel or reference it from `.cursorrules`.
+The installer creates `.cursor/rules/idg.mdc`. Activate it in Cursor's rules panel or reference it from `.cursorrules`.
 
 **Verify:**
 Open Cursor composer: `"Using the scribe agent, draft a runbook for deploying this service."`
@@ -94,11 +94,11 @@ Open Cursor composer: `"Using the scribe agent, draft a runbook for deploying th
 
 **Install:**
 ```bash
-bash install.sh --target ./agents/scribe --hosts opencode
+bash install.sh --target ./.eidolons/idg --hosts opencode
 ```
 
 **Wire:**
-The installer creates `.opencode/agents/scribe.md`. OpenCode picks this up automatically.
+The installer creates `.opencode/.eidolons/idg.md`. OpenCode picks this up automatically.
 
 **Verify:**
 In an OpenCode session: `"Load the scribe agent and produce a change-narrative for this PR."`
@@ -115,14 +115,14 @@ bash install.sh --hosts all
 
 ## Raw API / Any LLM
 
-Copy `agents/scribe/agent.md` (compact, ≤ 1,000 tokens) as the system prompt. Load `agents/scribe/SCRIBE.md` for the full methodology. Load skills and templates on-demand.
+Copy `.eidolons/idg/agent.md` (compact, ≤ 1,000 tokens) as the system prompt. Load `.eidolons/idg/SCRIBE.md` for the full methodology. Load skills and templates on-demand.
 
 ---
 
 ## Git Submodule (alternative)
 
 ```bash
-git submodule add https://github.com/Rynaro/scribe agents/scribe
+git submodule add https://github.com/Rynaro/scribe .eidolons/idg
 ```
 
 All internal paths are relative. Works from any location.
@@ -132,7 +132,7 @@ All internal paths are relative. Works from any location.
 ## Uninstall
 
 ```bash
-rm -rf agents/scribe
+rm -rf .eidolons/idg
 ```
 
 Then remove the dispatch lines added to `CLAUDE.md`, `.github/copilot-instructions.md`, etc.

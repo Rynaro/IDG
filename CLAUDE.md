@@ -9,10 +9,10 @@ Load order for this repository:
 
 ## Consumer Project Usage
 
-After installing this Eidolon into a consumer project (`bash install.sh`), Claude Code will find the installed agent at `agents/scribe/agent.md`.
+After installing this Eidolon into a consumer project (`bash install.sh`), Claude Code will find the installed agent at `.eidolons/idg/agent.md`.
 
 Add to the consumer project's `CLAUDE.md`:
 
 ```
-@agents/scribe/agent.md
+@.eidolons/idg/agent.md
 ```

@@ -3,7 +3,7 @@
 ## 1. Install
 
 ```bash
-bash install.sh --target ./agents/scribe --hosts copilot
+bash install.sh --target ./.eidolons/idg --hosts copilot
 ```
 
 The installer creates or appends to `.github/copilot-instructions.md`.
@@ -14,7 +14,7 @@ The installed dispatch entry in `.github/copilot-instructions.md`:
 
 ```markdown
 ## Scribe Agent
-See `agents/scribe/agent.md` for the SCRIBE methodology entry point.
+See `.eidolons/idg/agent.md` for the SCRIBE methodology entry point.
 ```
 
 Copilot Chat loads `.github/copilot-instructions.md` as custom instructions automatically in repositories where it is present.
