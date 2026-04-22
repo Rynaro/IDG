@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-EIDOLON_NAME="scribe"
+EIDOLON_NAME="idg"
 EIDOLON_VERSION="1.1.0"
-METHODOLOGY="SCRIBE"
+METHODOLOGY="IDG"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # --- defaults ---
-TARGET="./agents/${EIDOLON_NAME}"
+TARGET="./.eidolons/${EIDOLON_NAME}"
 HOSTS="auto"
 FORCE=false
 DRY_RUN=false
@@ -19,7 +19,7 @@ usage() {
 Usage: bash install.sh [OPTIONS]
 
 Options:
-  --target DIR          Target install dir (default: ./agents/${EIDOLON_NAME})
+  --target DIR          Target install dir (default: ${TARGET})
   --hosts LIST          claude-code,copilot,cursor,opencode,all (default: auto)
   --force               Overwrite existing install
   --dry-run             Print actions, no writes
@@ -70,6 +70,10 @@ if [[ "$DRY_RUN" != "true" ]]; then
   TARGET="$(cd "$TARGET" && pwd)"
 fi
 
+# Relative form for @-pointers (strip absolute prefix or leading ./)
+TARGET_REL="${TARGET#$(pwd)/}"
+TARGET_REL="${TARGET_REL#./}"
+
 # --- idempotency check ---
 if [[ -f "${TARGET}/install.manifest.json" && "$FORCE" != "true" ]]; then
   EXISTING_VER="$(grep -o '"version":"[^"]*"' "${TARGET}/install.manifest.json" 2>/dev/null | cut -d'"' -f4 || echo "unknown")"
@@ -92,13 +96,20 @@ sha256_file() {
   fi
 }
 
+# --- resolve spec source (support both legacy SCRIBE.md and canonical IDG.md) ---
+if [[ -f "${SCRIPT_DIR}/IDG.md" ]]; then
+  SRC_SPEC="${SCRIPT_DIR}/IDG.md"
+else
+  SRC_SPEC="${SCRIPT_DIR}/SCRIBE.md"
+fi
+
 if [[ "$MANIFEST_ONLY" != "true" ]]; then
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "[dry-run] Target: ${TARGET}"
     echo "[dry-run] Hosts:  ${HOSTS}"
     echo "[dry-run] Would write:"
     echo "  ${TARGET}/agent.md"
-    echo "  ${TARGET}/SCRIBE.md"
+    echo "  ${TARGET}/IDG.md"
     echo "  ${TARGET}/DESIGN-RATIONALE.md"
     echo "  ${TARGET}/skills/composition/SKILL.md"
     echo "  ${TARGET}/skills/verification/SKILL.md"
@@ -106,7 +117,8 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     echo "  ${TARGET}/templates/adr.md"
     echo "  ${TARGET}/templates/runbook.md"
     echo "  ${TARGET}/templates/change-narrative.md"
-    hosts_contains "claude-code" && echo "  CLAUDE.md (append @agents/${EIDOLON_NAME}/agent.md)"
+    hosts_contains "claude-code" && echo "  CLAUDE.md (append @${TARGET_REL}/agent.md)"
+    hosts_contains "claude-code" && echo "  .claude/agents/${EIDOLON_NAME}.md"
     hosts_contains "copilot"     && echo "  .github/copilot-instructions.md"
     hosts_contains "cursor"      && echo "  .cursor/rules/${EIDOLON_NAME}.mdc"
     hosts_contains "opencode"    && echo "  .opencode/agents/${EIDOLON_NAME}.md"
@@ -117,9 +129,9 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
       "${TARGET}/skills/verification" \
       "${TARGET}/templates"
 
-    # Copy agent files (preserve existing copy-files logic)
+    # Copy agent files
     cp "${SCRIPT_DIR}/agent.md"                                   "${TARGET}/agent.md"
-    cp "${SCRIPT_DIR}/SCRIBE.md"                                  "${TARGET}/SCRIBE.md"
+    cp "${SRC_SPEC}"                                              "${TARGET}/IDG.md"
     cp "${SCRIPT_DIR}/DESIGN-RATIONALE.md"                        "${TARGET}/DESIGN-RATIONALE.md"
     cp "${SCRIPT_DIR}/skills/composition/SKILL.md"                "${TARGET}/skills/composition/SKILL.md"
     cp "${SCRIPT_DIR}/skills/verification/SKILL.md"               "${TARGET}/skills/verification/SKILL.md"
@@ -130,25 +142,51 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
 
     # --- host dispatch wiring ---
     if hosts_contains "claude-code"; then
+      # Root CLAUDE.md pointer (widened idempotency match covers legacy scribe installs)
       if [[ -f "CLAUDE.md" ]]; then
-        if ! grep -q "agents/${EIDOLON_NAME}/agent.md" "CLAUDE.md" 2>/dev/null; then
-          printf "\n@agents/%s/agent.md\n" "${EIDOLON_NAME}" >> "CLAUDE.md"
+        if ! grep -qE "(\.eidolons|agents)/(idg|scribe)/agent\.md" "CLAUDE.md" 2>/dev/null; then
+          printf "\n@%s/agent.md\n" "${TARGET_REL}" >> "CLAUDE.md"
         fi
       else
-        printf "@agents/%s/agent.md\n" "${EIDOLON_NAME}" > "CLAUDE.md"
+        printf "@%s/agent.md\n" "${TARGET_REL}" > "CLAUDE.md"
+      fi
+
+      # Subagent dispatch — authoritative when claude-code is wired
+      mkdir -p ".claude/agents"
+      if [[ ! -f ".claude/agents/${EIDOLON_NAME}.md" || "$FORCE" == "true" ]]; then
+        cat > ".claude/agents/${EIDOLON_NAME}.md" <<AGENT
+---
+name: ${EIDOLON_NAME}
+description: "Documentation synthesis — structured markers, CHT verification, provenance-first."
+when_to_use: "After APIVR-Δ (or an equivalent implementation session) produces a session log, delta history, or completion report and you need it chronicled as an ADR, runbook, or change-narrative."
+tools: Read, Grep, Glob, Write
+methodology: ${METHODOLOGY}
+methodology_version: "${EIDOLON_VERSION%.*}"
+role: Scriber — documentation synthesis with provenance
+handoffs: []
+---
+
+${METHODOLOGY} runs the I→D→G cycle. Given session artifacts, it produces
+structured documentation (chronicle, ADR, runbook, change-narrative) with
+markers that verify provenance back to the source session.
+
+See \`${TARGET_REL}/agent.md\` for P0 rules and
+\`${TARGET_REL}/${METHODOLOGY}.md\` for the full specification. Skills load on
+demand — see \`${TARGET_REL}/skills/\`.
+AGENT
       fi
     fi
 
     if hosts_contains "copilot"; then
       mkdir -p ".github"
       if [[ -f ".github/copilot-instructions.md" ]]; then
-        if ! grep -q "${EIDOLON_NAME}" ".github/copilot-instructions.md" 2>/dev/null; then
-          printf "\n## %s Agent\nSee \`agents/%s/agent.md\` for the %s methodology.\n" \
-            "${EIDOLON_NAME^}" "${EIDOLON_NAME}" "${METHODOLOGY}" >> ".github/copilot-instructions.md"
+        if ! grep -qE "(${EIDOLON_NAME}|scribe)" ".github/copilot-instructions.md" 2>/dev/null; then
+          printf "\n## %s Agent\nSee \`%s/agent.md\` for the %s methodology.\n" \
+            "${METHODOLOGY}" "${TARGET_REL}" "${METHODOLOGY}" >> ".github/copilot-instructions.md"
         fi
       else
-        printf "# %s Agent — %s\n\nSee \`agents/%s/agent.md\` for the %s methodology entry point.\n" \
-          "${METHODOLOGY}" "${EIDOLON_NAME}" "${EIDOLON_NAME}" "${METHODOLOGY}" > ".github/copilot-instructions.md"
+        printf "# %s Agent — %s\n\nSee \`%s/agent.md\` for the %s methodology entry point.\n" \
+          "${METHODOLOGY}" "${EIDOLON_NAME}" "${TARGET_REL}" "${METHODOLOGY}" > ".github/copilot-instructions.md"
       fi
     fi
 
@@ -160,14 +198,14 @@ alwaysApply: false
 ---
 # ${METHODOLOGY} — ${EIDOLON_NAME}
 
-See \`agents/${EIDOLON_NAME}/agent.md\` for the ${METHODOLOGY} methodology entry point.
+See \`${TARGET_REL}/agent.md\` for the ${METHODOLOGY} methodology entry point.
 CURSOR_EOF
     fi
 
     if hosts_contains "opencode"; then
       mkdir -p ".opencode/agents"
-      printf "# %s — %s\n\nSee \`agents/%s/agent.md\` for the %s methodology entry point.\n" \
-        "${METHODOLOGY}" "${EIDOLON_NAME}" "${EIDOLON_NAME}" "${METHODOLOGY}" \
+      printf "# %s — %s\n\nSee \`%s/agent.md\` for the %s methodology entry point.\n" \
+        "${METHODOLOGY}" "${EIDOLON_NAME}" "${TARGET_REL}" "${METHODOLOGY}" \
         > ".opencode/agents/${EIDOLON_NAME}.md"
     fi
   fi
@@ -192,7 +230,7 @@ if [[ "$DRY_RUN" != "true" ]]; then
   files_json="[]"
   if [[ "$MANIFEST_ONLY" != "true" && -f "${TARGET}/agent.md" ]]; then
     sha_agent=$(sha256_file "${TARGET}/agent.md")
-    sha_scribe=$(sha256_file "${TARGET}/SCRIBE.md")
+    sha_spec=$(sha256_file "${TARGET}/IDG.md")
     sha_dr=$(sha256_file "${TARGET}/DESIGN-RATIONALE.md")
     sha_comp=$(sha256_file "${TARGET}/skills/composition/SKILL.md")
     sha_verif=$(sha256_file "${TARGET}/skills/verification/SKILL.md")
@@ -202,8 +240,8 @@ if [[ "$DRY_RUN" != "true" ]]; then
     sha_cn=$(sha256_file "${TARGET}/templates/change-narrative.md")
     files_json=$(cat <<FILES_EOF
 [
-    {"path": "agent.md",                       "sha256": "${sha_agent}",  "role": "entry-point", "mode": "created"},
-    {"path": "SCRIBE.md",                      "sha256": "${sha_scribe}", "role": "spec",        "mode": "created"},
+    {"path": "agent.md",                       "sha256": "${sha_agent}", "role": "entry-point", "mode": "created"},
+    {"path": "IDG.md",                         "sha256": "${sha_spec}",  "role": "spec",        "mode": "created"},
     {"path": "DESIGN-RATIONALE.md",            "sha256": "${sha_dr}",    "role": "other",       "mode": "created"},
     {"path": "skills/composition/SKILL.md",    "sha256": "${sha_comp}",  "role": "skill",       "mode": "created"},
     {"path": "skills/verification/SKILL.md",   "sha256": "${sha_verif}", "role": "skill",       "mode": "created"},
@@ -245,7 +283,7 @@ FILES_EOF
 MANIFEST_EOF
 
   echo ""
-  echo "Scribe installed to: ${TARGET}"
+  echo "${METHODOLOGY} installed to: ${TARGET}"
   echo "Hosts wired: ${HOSTS}"
   echo ""
   echo "✓ agent.md: ${AGENT_TOKENS} tokens (budget: ≤1000)"
@@ -259,4 +297,4 @@ fi
 # --- smoke test banner ---
 echo ""
 echo "Smoke test:"
-echo "  \"Using the Scribe SCRIBE methodology, synthesize an ADR from: we chose PostgreSQL over MySQL for its JSONB support. Include provenance metadata.\""
+echo "  \"Using the ${METHODOLOGY} methodology, synthesize an ADR from: we chose PostgreSQL over MySQL for its JSONB support. Include provenance metadata.\""

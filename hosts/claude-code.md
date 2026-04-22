@@ -3,7 +3,7 @@
 ## 1. Install
 
 ```bash
-bash install.sh --target ./agents/scribe --hosts claude-code
+bash install.sh --target ./.eidolons/idg --hosts claude-code
 ```
 
 Or install all hosts at once:
@@ -17,7 +17,7 @@ bash install.sh --hosts all
 Add to your consumer project's `CLAUDE.md`:
 
 ```markdown
-@agents/scribe/agent.md
+@.eidolons/idg/agent.md
 ```
 
 Claude Code loads `agent.md` into every session. Skills and templates load on-demand when the Scribe requests them.
@@ -45,13 +45,13 @@ Expected: Scribe loads `skills/composition/SKILL.md`, produces an ADR with `[DEC
 
 ## 4. Troubleshooting
 
-**Scribe not responding to @agents/scribe/agent.md**
-- Verify `agents/scribe/agent.md` exists: `ls agents/scribe/agent.md`
+**Scribe not responding to @.eidolons/idg/agent.md**
+- Verify `.eidolons/idg/agent.md` exists: `ls .eidolons/idg/agent.md`
 - Verify the `@` path in `CLAUDE.md` is correct relative to project root
 
 **Scribe loading full SCRIBE.md on every invocation**
 - This is intentional only if explicitly referenced. If agent.md is the pointer, only ~800 tokens load at start.
 
 **Skills not found**
-- Verify `agents/scribe/skills/composition/SKILL.md` and `agents/scribe/skills/verification/SKILL.md` exist
+- Verify `.eidolons/idg/skills/composition/SKILL.md` and `.eidolons/idg/skills/verification/SKILL.md` exist
 - Check that paths are relative (not absolute) in the installed directory
