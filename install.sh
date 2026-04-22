@@ -103,6 +103,61 @@ else
   SRC_SPEC="${SCRIPT_DIR}/SCRIBE.md"
 fi
 
+# upsert_eidolon_block <file> <content>
+#
+# Owns a marker-bounded region in a composable dispatch file. Rewrites the
+# body in place when markers already exist; appends a new block otherwise.
+# Cleans up any pre-existing symlink at the target.
+upsert_eidolon_block() {
+  local dst="$1" content="$2"
+  local start="<!-- eidolon:${EIDOLON_NAME} start -->"
+  local end="<!-- eidolon:${EIDOLON_NAME} end -->"
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    local action="append"
+    [[ -f "$dst" ]] && grep -qF "$start" "$dst" 2>/dev/null && action="rewrite"
+    echo "[dry-run] ${action} eidolon:${EIDOLON_NAME} block in ${dst}"
+    return
+  fi
+
+  mkdir -p "$(dirname "$dst")" 2>/dev/null || true
+  [[ -L "$dst" ]] && rm -f "$dst"
+
+  local content_file tmp
+  content_file="$(mktemp)"
+  printf '%s\n' "$content" > "$content_file"
+
+  if [[ -f "$dst" ]] && grep -qF "$start" "$dst" 2>/dev/null; then
+    tmp="$(mktemp)"
+    awk -v start="$start" -v end="$end" -v cf="$content_file" '
+      BEGIN { in_block = 0 }
+      $0 == start {
+        print start
+        while ((getline line < cf) > 0) print line
+        close(cf)
+        in_block = 1
+        next
+      }
+      $0 == end {
+        print end
+        in_block = 0
+        next
+      }
+      !in_block { print }
+    ' "$dst" > "$tmp"
+    mv "$tmp" "$dst"
+    echo "  rewrote eidolon:${EIDOLON_NAME} block in ${dst}"
+  elif [[ -f "$dst" ]]; then
+    { printf '\n%s\n' "$start"; cat "$content_file"; printf '%s\n' "$end"; } >> "$dst"
+    echo "  appended eidolon:${EIDOLON_NAME} block to ${dst}"
+  else
+    { printf '%s\n' "$start"; cat "$content_file"; printf '%s\n' "$end"; } > "$dst"
+    echo "  created ${dst} with eidolon:${EIDOLON_NAME} block"
+  fi
+
+  rm -f "$content_file"
+}
+
 if [[ "$MANIFEST_ONLY" != "true" ]]; then
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "[dry-run] Target: ${TARGET}"
@@ -140,16 +195,23 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     cp "${SCRIPT_DIR}/templates/runbook.md"                       "${TARGET}/templates/runbook.md"
     cp "${SCRIPT_DIR}/templates/change-narrative.md"              "${TARGET}/templates/change-narrative.md"
 
+    # --- shared composable block ---
+    # Emitted identically to AGENTS.md / CLAUDE.md / copilot-instructions.md.
+    # Each Eidolon owns its marker-bounded section within these files.
+    SHARED_BLOCK="## ${METHODOLOGY} — Documentation synthesis (v${EIDOLON_VERSION})
+
+Entry:     \`${TARGET_REL}/agent.md\`
+Full spec: \`${TARGET_REL}/${METHODOLOGY}.md\`
+Cycle:     I (Intake) → D (Draft) → G (Gate)
+
+**P0 (non-negotiable):** synthesis from provided context only (no retrieval or code analysis); structural markers ([DECISION], [ACTION], [DISPUTED], [GAP]) required; CHT verification gate (Completeness / Helpfulness / Truthfulness) with one revision max; provenance-first (every claim traces to source session)."
+
+    # AGENTS.md is the host-agnostic open-standard file; emit unconditionally.
+    upsert_eidolon_block "AGENTS.md" "$SHARED_BLOCK"
+
     # --- host dispatch wiring ---
     if hosts_contains "claude-code"; then
-      # Root CLAUDE.md pointer (widened idempotency match covers legacy scribe installs)
-      if [[ -f "CLAUDE.md" ]]; then
-        if ! grep -qE "(\.eidolons|agents)/(idg|scribe)/agent\.md" "CLAUDE.md" 2>/dev/null; then
-          printf "\n@%s/agent.md\n" "${TARGET_REL}" >> "CLAUDE.md"
-        fi
-      else
-        printf "@%s/agent.md\n" "${TARGET_REL}" > "CLAUDE.md"
-      fi
+      upsert_eidolon_block "CLAUDE.md" "$SHARED_BLOCK"
 
       # Subagent dispatch — authoritative when claude-code is wired
       mkdir -p ".claude/agents"
@@ -178,21 +240,13 @@ AGENT
     fi
 
     if hosts_contains "copilot"; then
-      mkdir -p ".github"
-      if [[ -f ".github/copilot-instructions.md" ]]; then
-        if ! grep -qE "(${EIDOLON_NAME}|scribe)" ".github/copilot-instructions.md" 2>/dev/null; then
-          printf "\n## %s Agent\nSee \`%s/agent.md\` for the %s methodology.\n" \
-            "${METHODOLOGY}" "${TARGET_REL}" "${METHODOLOGY}" >> ".github/copilot-instructions.md"
-        fi
-      else
-        printf "# %s Agent — %s\n\nSee \`%s/agent.md\` for the %s methodology entry point.\n" \
-          "${METHODOLOGY}" "${EIDOLON_NAME}" "${TARGET_REL}" "${METHODOLOGY}" > ".github/copilot-instructions.md"
-      fi
+      upsert_eidolon_block ".github/copilot-instructions.md" "$SHARED_BLOCK"
     fi
 
     if hosts_contains "cursor"; then
       mkdir -p ".cursor/rules"
-      cat > ".cursor/rules/${EIDOLON_NAME}.mdc" <<CURSOR_EOF
+      if [[ ! -f ".cursor/rules/${EIDOLON_NAME}.mdc" || "$FORCE" == "true" ]]; then
+        cat > ".cursor/rules/${EIDOLON_NAME}.mdc" <<CURSOR_EOF
 ---
 alwaysApply: false
 ---
@@ -200,13 +254,16 @@ alwaysApply: false
 
 See \`${TARGET_REL}/agent.md\` for the ${METHODOLOGY} methodology entry point.
 CURSOR_EOF
+      fi
     fi
 
     if hosts_contains "opencode"; then
       mkdir -p ".opencode/agents"
-      printf "# %s — %s\n\nSee \`%s/agent.md\` for the %s methodology entry point.\n" \
-        "${METHODOLOGY}" "${EIDOLON_NAME}" "${TARGET_REL}" "${METHODOLOGY}" \
-        > ".opencode/agents/${EIDOLON_NAME}.md"
+      if [[ ! -f ".opencode/agents/${EIDOLON_NAME}.md" || "$FORCE" == "true" ]]; then
+        printf "# %s — %s\n\nSee \`%s/agent.md\` for the %s methodology entry point.\n" \
+          "${METHODOLOGY}" "${EIDOLON_NAME}" "${TARGET_REL}" "${METHODOLOGY}" \
+          > ".opencode/agents/${EIDOLON_NAME}.md"
+      fi
     fi
   fi
 fi
