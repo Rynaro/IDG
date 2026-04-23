@@ -13,35 +13,42 @@ FORCE=false
 DRY_RUN=false
 NON_INTERACTIVE=false
 MANIFEST_ONLY=false
+SHARED_DISPATCH=false
 
 usage() {
   cat <<EOF
 Usage: bash install.sh [OPTIONS]
 
 Options:
-  --target DIR          Target install dir (default: ${TARGET})
-  --hosts LIST          claude-code,copilot,cursor,opencode,all (default: auto)
-  --force               Overwrite existing install
-  --dry-run             Print actions, no writes
-  --non-interactive     No prompts; fail on ambiguity (meta-installer mode)
-  --manifest-only       Only emit install.manifest.json
-  --version             Print Eidolon version
-  -h, --help            Show help
+  --target DIR            Target install dir (default: ${TARGET})
+  --hosts LIST            claude-code,copilot,cursor,opencode,all (default: auto)
+  --shared-dispatch       Compose marker-bounded section in root AGENTS.md /
+                          CLAUDE.md / .github/copilot-instructions.md (opt-in).
+  --no-shared-dispatch    Skip root dispatch files (default). Per-vendor files
+                          remain self-sufficient.
+  --force                 Overwrite existing install
+  --dry-run               Print actions, no writes
+  --non-interactive       No prompts; fail on ambiguity (meta-installer mode)
+  --manifest-only         Only emit install.manifest.json
+  --version               Print Eidolon version
+  -h, --help              Show help
 EOF
 }
 
 # --- arg parsing ---
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --target)           TARGET="$2"; shift 2 ;;
-    --hosts)            HOSTS="$2"; shift 2 ;;
-    --force)            FORCE=true; shift ;;
-    --dry-run)          DRY_RUN=true; shift ;;
-    --non-interactive)  NON_INTERACTIVE=true; shift ;;
-    --manifest-only)    MANIFEST_ONLY=true; shift ;;
-    --version)          echo "${EIDOLON_VERSION}"; exit 0 ;;
-    -h|--help)          usage; exit 0 ;;
-    *)                  echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
+    --target)               TARGET="$2"; shift 2 ;;
+    --hosts)                HOSTS="$2"; shift 2 ;;
+    --shared-dispatch)      SHARED_DISPATCH=true; shift ;;
+    --no-shared-dispatch)   SHARED_DISPATCH=false; shift ;;
+    --force)                FORCE=true; shift ;;
+    --dry-run)              DRY_RUN=true; shift ;;
+    --non-interactive)      NON_INTERACTIVE=true; shift ;;
+    --manifest-only)        MANIFEST_ONLY=true; shift ;;
+    --version)              echo "${EIDOLON_VERSION}"; exit 0 ;;
+    -h|--help)              usage; exit 0 ;;
+    *)                      echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
   esac
 done
 
@@ -195,9 +202,7 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     cp "${SCRIPT_DIR}/templates/runbook.md"                       "${TARGET}/templates/runbook.md"
     cp "${SCRIPT_DIR}/templates/change-narrative.md"              "${TARGET}/templates/change-narrative.md"
 
-    # --- shared composable block ---
-    # Emitted identically to AGENTS.md / CLAUDE.md / copilot-instructions.md.
-    # Each Eidolon owns its marker-bounded section within these files.
+    # --- shared composable block (opt-in via --shared-dispatch) ---
     SHARED_BLOCK="## ${METHODOLOGY} — Documentation synthesis (v${EIDOLON_VERSION})
 
 Entry:     \`${TARGET_REL}/agent.md\`
@@ -206,14 +211,70 @@ Cycle:     I (Intake) → D (Draft) → G (Gate)
 
 **P0 (non-negotiable):** synthesis from provided context only (no retrieval or code analysis); structural markers ([DECISION], [ACTION], [DISPUTED], [GAP]) required; CHT verification gate (Completeness / Helpfulness / Truthfulness) with one revision max; provenance-first (every claim traces to source session)."
 
-    # AGENTS.md is the host-agnostic open-standard file; emit unconditionally.
-    upsert_eidolon_block "AGENTS.md" "$SHARED_BLOCK"
+    # --- per-skill vendor wiring helpers ---
+    strip_frontmatter() {
+      local f="$1"
+      if [[ "$(head -1 "$f")" == "---" ]]; then
+        awk 'NR==1 && /^---$/ {in_fm=1; next}
+             in_fm && /^---$/ {in_fm=0; next}
+             !in_fm {print}' "$f"
+      else
+        cat "$f"
+      fi
+    }
+    extract_fm_field() {
+      awk -v field="$2" '
+        NR==1 && /^---$/ { in_fm=1; next }
+        in_fm && /^---$/ { exit }
+        in_fm { p=index($0, field ":"); if (p==1) { sub("^" field ":[[:space:]]*", ""); print; exit } }
+      ' "$1"
+    }
+    wire_skill() {
+      local src_dir="$1" skill_name="$2"
+      local src_skill="${src_dir}/SKILL.md"
+      [[ -f "$src_skill" ]] || return
+      local description
+      description="$(extract_fm_field "$src_skill" "description")"
+      [[ -z "$description" ]] && description="${skill_name}"
+
+      if hosts_contains "claude-code"; then
+        local dst_dir=".claude/skills/${skill_name}"
+        rm -rf "$dst_dir"
+        mkdir -p "$dst_dir"
+        cp -R "${src_dir}/." "${dst_dir}/"
+      fi
+      if hosts_contains "copilot"; then
+        mkdir -p ".github/instructions"
+        {
+          echo "---"
+          echo "applyTo: \"**\""
+          echo "description: \"${description}\""
+          echo "---"
+          strip_frontmatter "$src_skill"
+        } > ".github/instructions/${skill_name}.instructions.md"
+      fi
+      if hosts_contains "cursor"; then
+        mkdir -p ".cursor/rules"
+        {
+          echo "---"
+          echo "description: \"${description}\""
+          echo "alwaysApply: false"
+          echo "---"
+          strip_frontmatter "$src_skill"
+        } > ".cursor/rules/${skill_name}.mdc"
+      fi
+    }
+
+    # Emit per-skill vendor files for every skill.
+    for skill in composition verification; do
+      wire_skill "${SCRIPT_DIR}/skills/${skill}" "${EIDOLON_NAME}-${skill}"
+    done
 
     # --- host dispatch wiring ---
     if hosts_contains "claude-code"; then
-      upsert_eidolon_block "CLAUDE.md" "$SHARED_BLOCK"
+      [[ "$SHARED_DISPATCH" == "true" ]] && upsert_eidolon_block "CLAUDE.md" "$SHARED_BLOCK"
 
-      # Subagent dispatch — authoritative when claude-code is wired
+      # Subagent dispatch — always written when claude-code wired.
       mkdir -p ".claude/agents"
       if [[ ! -f ".claude/agents/${EIDOLON_NAME}.md" || "$FORCE" == "true" ]]; then
         cat > ".claude/agents/${EIDOLON_NAME}.md" <<AGENT
@@ -240,21 +301,12 @@ AGENT
     fi
 
     if hosts_contains "copilot"; then
-      upsert_eidolon_block ".github/copilot-instructions.md" "$SHARED_BLOCK"
+      [[ "$SHARED_DISPATCH" == "true" ]] && upsert_eidolon_block ".github/copilot-instructions.md" "$SHARED_BLOCK"
     fi
 
     if hosts_contains "cursor"; then
-      mkdir -p ".cursor/rules"
-      if [[ ! -f ".cursor/rules/${EIDOLON_NAME}.mdc" || "$FORCE" == "true" ]]; then
-        cat > ".cursor/rules/${EIDOLON_NAME}.mdc" <<CURSOR_EOF
----
-alwaysApply: false
----
-# ${METHODOLOGY} — ${EIDOLON_NAME}
-
-See \`${TARGET_REL}/agent.md\` for the ${METHODOLOGY} methodology entry point.
-CURSOR_EOF
-      fi
+      # Drop the legacy methodology-level rule — per-skill rules are canonical now.
+      [[ -f ".cursor/rules/${EIDOLON_NAME}.mdc" && "$FORCE" == "true" ]] && rm -f ".cursor/rules/${EIDOLON_NAME}.mdc"
     fi
 
     if hosts_contains "opencode"; then
@@ -265,6 +317,9 @@ CURSOR_EOF
           > ".opencode/agents/${EIDOLON_NAME}.md"
       fi
     fi
+
+    # AGENTS.md — opt-in shared dispatch only.
+    [[ "$SHARED_DISPATCH" == "true" ]] && upsert_eidolon_block "AGENTS.md" "$SHARED_BLOCK"
   fi
 fi
 
