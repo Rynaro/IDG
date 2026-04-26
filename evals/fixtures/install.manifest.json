@@ -1,0 +1,35 @@
+{
+  "eidolon": "idg",
+  "version": "1.1.4",
+  "methodology": "IDG",
+  "installed_at": "2026-04-26T16:05:06Z",
+  "target": "./.eidolons/idg",
+  "hosts_wired": ["codex"],
+  "files_written": [
+    {"path": "agent.md",                       "sha256": "9eb42a4fc192239c40a96fc89aa8986d4950437141c31e35987646beb0c4829c", "role": "entry-point", "mode": "created"},
+    {"path": "IDG.md",                         "sha256": "b667f9ec94f841cd93569e9480e66b5ae40de46120db9b9ab999590d77727caa",  "role": "spec",        "mode": "created"},
+    {"path": "DESIGN-RATIONALE.md",            "sha256": "be04554f65bcbd594e51199b631e7760a6bba9690aa487b7c46fd1136bd3f0cd",    "role": "other",       "mode": "created"},
+    {"path": "skills/composition/SKILL.md",    "sha256": "573db60a112f688512c565472bb8ff6176a887afeaea88aeb53125645fa0e7ad",  "role": "skill",       "mode": "created"},
+    {"path": "skills/verification/SKILL.md",   "sha256": "bdcedb49cf8f4848f7f93effd6e944b5793999b588bfd5c251469cd5134bc1bf", "role": "skill",       "mode": "created"},
+    {"path": "templates/session-chronicle.md", "sha256": "994993f7d04c7f10c029152c3e72b693e545d913dff705965e3075996802534e", "role": "template",    "mode": "created"},
+    {"path": "templates/adr.md",               "sha256": "8a5d74b8ec25a201cde403c982402935fca1d549cc119c220034d903579df2aa",   "role": "template",    "mode": "created"},
+    {"path": "templates/runbook.md",           "sha256": "c8734bcbfdb5642707e9003b273937f9000c7a95854bb508e62e5b861a631855",   "role": "template",    "mode": "created"},
+    {"path": "templates/change-narrative.md",  "sha256": "34ef8b6af326a6e2da0b1430bf281436b9a75edc6201f9a0dcac65fce34de742",    "role": "template",    "mode": "created"},
+    {"path": ".codex/agents/idg.md", "sha256": "703850779f0536453fb5c870b0b1eeee3039c4a7be456edfc4f185e73829ec11", "role": "dispatch", "mode": "created"},
+    {"path": "AGENTS.md", "sha256": "78e1719b872ebed9064a292e96f4a6f32d499bb81b2010645deceb41bc091ad5", "role": "dispatch"}
+  ],
+  "handoffs_declared": {
+    "upstream": [],
+    "downstream": []
+  },
+  "token_budget": {
+    "entry": 310,
+    "working_set_target": 1000
+  },
+  "security": {
+    "reads_repo": false,
+    "reads_network": false,
+    "writes_repo": false,
+    "persists": []
+  }
+}
