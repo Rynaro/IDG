@@ -2,7 +2,7 @@
 set -euo pipefail
 
 EIDOLON_NAME="idg"
-EIDOLON_VERSION="1.1.0"
+EIDOLON_VERSION="1.1.4"
 METHODOLOGY="IDG"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -21,7 +21,7 @@ Usage: bash install.sh [OPTIONS]
 
 Options:
   --target DIR            Target install dir (default: ${TARGET})
-  --hosts LIST            claude-code,copilot,cursor,opencode,all (default: auto)
+  --hosts LIST            claude-code,copilot,cursor,opencode,codex,all (default: auto)
   --shared-dispatch       Compose marker-bounded section in root AGENTS.md /
                           CLAUDE.md / .github/copilot-instructions.md (opt-in).
   --no-shared-dispatch    Skip root dispatch files (default). Per-vendor files
@@ -53,12 +53,20 @@ while [[ $# -gt 0 ]]; do
 done
 
 # --- host detection ---
+# EIIS v1.1 §4.5 — `.codex/` and root `AGENTS.md` are Codex signals; root
+# `AGENTS.md` is co-owned with copilot and treated as a definitive Codex
+# signal when no `.github/` is present.
 detect_hosts() {
   local -a detected=()
   [[ -f "CLAUDE.md" || -d ".claude" ]]          && detected+=("claude-code")
   [[ -d ".github" ]]                             && detected+=("copilot")
   [[ -d ".cursor" || -f ".cursorrules" ]]        && detected+=("cursor")
   [[ -d ".opencode" ]]                           && detected+=("opencode")
+  if [[ -d ".codex" ]]; then
+    detected+=("codex")
+  elif [[ -f "AGENTS.md" && ! -d ".github" ]]; then
+    detected+=("codex")
+  fi
   printf "%s\n" "${detected[@]+"${detected[@]}"}"
 }
 
@@ -66,8 +74,18 @@ if [[ "$HOSTS" == "auto" ]]; then
   detected_list="$(detect_hosts | paste -sd, -)"
   HOSTS="${detected_list:-none}"
 elif [[ "$HOSTS" == "all" ]]; then
-  HOSTS="claude-code,copilot,cursor,opencode"
+  HOSTS="claude-code,copilot,cursor,opencode,codex"
 fi
+
+# Validate host list (EIIS v1.1 §2.1, §2.7).
+IFS=',' read -ra _HOST_ARRAY <<< "$HOSTS"
+for _h in "${_HOST_ARRAY[@]}"; do
+  case "$_h" in
+    claude-code|copilot|cursor|opencode|codex|raw|none|"") : ;;
+    *) echo "Invalid --hosts value: $_h" >&2; exit 2 ;;
+  esac
+done
+unset _HOST_ARRAY _h
 
 hosts_contains() { [[ ",$HOSTS," == *",$1,"* ]]; }
 
@@ -184,6 +202,8 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     hosts_contains "copilot"     && echo "  .github/copilot-instructions.md"
     hosts_contains "cursor"      && echo "  .cursor/rules/${EIDOLON_NAME}.mdc"
     hosts_contains "opencode"    && echo "  .opencode/agents/${EIDOLON_NAME}.md"
+    hosts_contains "codex"       && echo "  AGENTS.md (eidolon:${EIDOLON_NAME} marker block)"
+    hosts_contains "codex"       && echo "  .codex/agents/${EIDOLON_NAME}.md"
   else
     # Create directory structure
     mkdir -p \
@@ -318,8 +338,54 @@ AGENT
       fi
     fi
 
-    # AGENTS.md — opt-in shared dispatch only.
-    [[ "$SHARED_DISPATCH" == "true" ]] && upsert_eidolon_block "AGENTS.md" "$SHARED_BLOCK"
+    # Codex (EIIS v1.1 §4.5). Required: `.codex/agents/<name>.md` with YAML
+    # frontmatter (`name`, `description`); SHOULD point at the methodology
+    # entry. Body mirrors the Claude subagent prompt for parity (§4.5.3.3
+    # allows divergence; we choose to mirror).
+    if hosts_contains "codex"; then
+      mkdir -p ".codex/agents"
+      if [[ ! -f ".codex/agents/${EIDOLON_NAME}.md" || "$FORCE" == "true" ]]; then
+        cat > ".codex/agents/${EIDOLON_NAME}.md" <<CODEX_AGENT
+---
+name: ${EIDOLON_NAME}
+description: Documentation synthesis subagent — structured markers, CHT verification, provenance-first chronicle/ADR/runbook output from session artifacts.
+---
+
+# ${METHODOLOGY} — Codex subagent
+
+${METHODOLOGY} runs the I→D→G cycle. Given session artifacts, it produces
+structured documentation (chronicle, ADR, runbook, change-narrative) with
+markers that verify provenance back to the source session.
+
+When Codex delegates to this subagent, treat the methodology in
+\`${TARGET_REL}/agent.md\` as authoritative. The full ruleset lives in
+\`${TARGET_REL}/${METHODOLOGY}.md\`. Skills load on demand — see
+\`${TARGET_REL}/skills/\`.
+
+## P0 (non-negotiable)
+
+- Synthesize from provided context only — no retrieval, no code analysis.
+- Apply structural markers: \`[DECISION]\`, \`[ACTION]\`, \`[DISPUTED]\`, \`[GAP]\`.
+- One CHT verification gate (Completeness / Helpfulness / Truthfulness),
+  one revision max, then deliver with flags.
+- Provenance-first: every claim traces to its source session.
+- Do not produce code.
+
+## When to use
+
+After APIVR-Δ (or an equivalent implementation session) produces a session
+log, delta history, or completion report and you need it chronicled as an
+ADR, runbook, or change-narrative.
+CODEX_AGENT
+      fi
+    fi
+
+    # Root AGENTS.md is co-owned by `copilot` and `codex` per EIIS v1.1
+    # §4.1.0. Write the marker block when --shared-dispatch is set OR when
+    # codex is wired (Codex's primary instruction surface).
+    if [[ "$SHARED_DISPATCH" == "true" ]] || hosts_contains "codex"; then
+      upsert_eidolon_block "AGENTS.md" "$SHARED_BLOCK"
+    fi
   fi
 fi
 
@@ -350,20 +416,41 @@ if [[ "$DRY_RUN" != "true" ]]; then
     sha_adr=$(sha256_file "${TARGET}/templates/adr.md")
     sha_run=$(sha256_file "${TARGET}/templates/runbook.md")
     sha_cn=$(sha256_file "${TARGET}/templates/change-narrative.md")
-    files_json=$(cat <<FILES_EOF
-[
-    {"path": "agent.md",                       "sha256": "${sha_agent}", "role": "entry-point", "mode": "created"},
-    {"path": "IDG.md",                         "sha256": "${sha_spec}",  "role": "spec",        "mode": "created"},
-    {"path": "DESIGN-RATIONALE.md",            "sha256": "${sha_dr}",    "role": "other",       "mode": "created"},
-    {"path": "skills/composition/SKILL.md",    "sha256": "${sha_comp}",  "role": "skill",       "mode": "created"},
-    {"path": "skills/verification/SKILL.md",   "sha256": "${sha_verif}", "role": "skill",       "mode": "created"},
-    {"path": "templates/session-chronicle.md", "sha256": "${sha_chron}", "role": "template",    "mode": "created"},
-    {"path": "templates/adr.md",               "sha256": "${sha_adr}",   "role": "template",    "mode": "created"},
-    {"path": "templates/runbook.md",           "sha256": "${sha_run}",   "role": "template",    "mode": "created"},
-    {"path": "templates/change-narrative.md",  "sha256": "${sha_cn}",    "role": "template",    "mode": "created"}
-  ]
-FILES_EOF
-)
+
+    files_entries=""
+    files_append() {
+      if [[ -z "$files_entries" ]]; then
+        files_entries="    $1"
+      else
+        files_entries="${files_entries},
+    $1"
+      fi
+    }
+    files_append "{\"path\": \"agent.md\",                       \"sha256\": \"${sha_agent}\", \"role\": \"entry-point\", \"mode\": \"created\"}"
+    files_append "{\"path\": \"IDG.md\",                         \"sha256\": \"${sha_spec}\",  \"role\": \"spec\",        \"mode\": \"created\"}"
+    files_append "{\"path\": \"DESIGN-RATIONALE.md\",            \"sha256\": \"${sha_dr}\",    \"role\": \"other\",       \"mode\": \"created\"}"
+    files_append "{\"path\": \"skills/composition/SKILL.md\",    \"sha256\": \"${sha_comp}\",  \"role\": \"skill\",       \"mode\": \"created\"}"
+    files_append "{\"path\": \"skills/verification/SKILL.md\",   \"sha256\": \"${sha_verif}\", \"role\": \"skill\",       \"mode\": \"created\"}"
+    files_append "{\"path\": \"templates/session-chronicle.md\", \"sha256\": \"${sha_chron}\", \"role\": \"template\",    \"mode\": \"created\"}"
+    files_append "{\"path\": \"templates/adr.md\",               \"sha256\": \"${sha_adr}\",   \"role\": \"template\",    \"mode\": \"created\"}"
+    files_append "{\"path\": \"templates/runbook.md\",           \"sha256\": \"${sha_run}\",   \"role\": \"template\",    \"mode\": \"created\"}"
+    files_append "{\"path\": \"templates/change-narrative.md\",  \"sha256\": \"${sha_cn}\",    \"role\": \"template\",    \"mode\": \"created\"}"
+
+    # Codex artefacts (EIIS v1.1 §4.5.5).
+    if hosts_contains "codex"; then
+      if [[ -f ".codex/agents/${EIDOLON_NAME}.md" ]]; then
+        sha_codex=$(sha256_file ".codex/agents/${EIDOLON_NAME}.md")
+        files_append "{\"path\": \".codex/agents/${EIDOLON_NAME}.md\", \"sha256\": \"${sha_codex}\", \"role\": \"dispatch\", \"mode\": \"created\"}"
+      fi
+      if [[ -f "AGENTS.md" ]]; then
+        sha_agents=$(sha256_file "AGENTS.md")
+        files_append "{\"path\": \"AGENTS.md\", \"sha256\": \"${sha_agents}\", \"role\": \"dispatch\"}"
+      fi
+    fi
+
+    files_json="[
+${files_entries}
+  ]"
   fi
 
   AGENT_TOKENS=$(wc -w < "${TARGET}/agent.md" | awk '{printf "%d", $1/0.75}')

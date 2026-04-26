@@ -9,6 +9,47 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.4] — 2026-04-24
+
+### Added — EIIS v1.1 + OpenAI Codex host
+
+- `EIIS_VERSION` file at root containing `1.1` (resolves drift D-6 from
+  the v1.0 conformance baseline; declares this Eidolon targets EIIS v1.1).
+- `install.sh` now accepts `codex` in `--hosts` and includes `codex` in
+  the `--hosts all` expansion (`claude-code,copilot,cursor,opencode,codex`).
+- Per EIIS v1.1 §4.5, when `codex` is wired the installer:
+  - Writes a marker-bounded `<!-- eidolon:idg start --> … end -->` block
+    into root `AGENTS.md` (co-owned by `copilot` and `codex` per §4.1.0,
+    written regardless of `--shared-dispatch`).
+  - Emits `.codex/agents/idg.md` with valid YAML frontmatter (`name: idg`,
+    a non-empty `description`) and a body that mirrors the existing
+    `.claude/agents/idg.md` prompt and points at
+    `./.eidolons/idg/agent.md` and `./.eidolons/idg/IDG.md`.
+- `detect_hosts` now recognises `.codex/` and a bare root `AGENTS.md`
+  (without `.github/`) as Codex signals.
+- `--hosts` value validation: unknown values now exit `2` with a
+  diagnostic on stderr (EIIS §2.7).
+- `install.manifest.json` lists `.codex/agents/idg.md` and `AGENTS.md`
+  under `files_written` when Codex is wired (EIIS §4.5.5).
+- `evals/fixtures/install.manifest.json` — sample manifest fixture used
+  by the EIIS conformance checker (`Rynaro/eidolons-eiis`).
+
+### Changed
+
+- Bumped `EIDOLON_VERSION` in `install.sh` from `1.1.0` to `1.1.4`.
+- Help text and dry-run preview list the Codex artefacts.
+
+### Notes
+
+- No bats test directory exists in this repo; verification is by
+  end-to-end smoke (`bash install.sh --hosts codex --non-interactive
+  --force`) plus the EIIS conformance checker. Both run clean: shellcheck
+  reports zero errors, the conformance check exits `0` against EIIS v1.1,
+  a second invocation produces byte-identical `AGENTS.md` and
+  `.codex/agents/idg.md`.
+
+---
+
 ### Added — EIIS-1.0 conformance
 
 - `agent.md` — compact always-loaded entry point (≤ 1,000 tokens)
