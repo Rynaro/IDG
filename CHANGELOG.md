@@ -14,6 +14,9 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `.github/workflows/release.yml` — caller workflow that invokes the eidolons-nexus `eidolon-release-template.yml` (PR #24, 2026-04-29). Tagging a SemVer release now produces a GitHub Release with `release-manifest.json` (commit, tree, archive_sha256, manifest_sha256, provenance.github_attestation) and `SHA256SUMS`, ready for nexus-side `Roster Intake` to populate `versions.releases.<v>` in `roster/index.yaml`.
+
 ## [1.1.4] — 2026-04-24
 
 ### Added — EIIS v1.1 + OpenAI Codex host
