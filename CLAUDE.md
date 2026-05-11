@@ -6,6 +6,7 @@ Load order for this repository:
 2. `SCRIBE.md` — full methodology specification
 3. `skills/<phase>/SKILL.md` — on-demand per phase
 4. `templates/<artifact>.md` — on-demand per output type
+5. `schemas/ecl-envelope.v1.json` — load on demand during Intake when an `*.envelope.json` sidecar is detected.
 
 ## Consumer Project Usage
 

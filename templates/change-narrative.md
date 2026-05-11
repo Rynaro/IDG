@@ -76,7 +76,7 @@ Use for release notes, changelogs, and PR summaries — narrating what changed a
 - **Scribe version**: 1.0.0
 - **Document type**: change-narrative
 - **Generated**: [timestamp]
-- **Source artifacts**: [list]
+- **Source artifacts**: [list; ECL envelope sources MAY be cited as `ecl://thread/<thread_id>/message/<message_id>`]
 - **CHT scores**: C:[N]/5 H:[N]/5 T:[N]/5
 - **Coverage**: [assessment]
 - **Flags**: [any unresolved markers]

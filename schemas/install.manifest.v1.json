@@ -131,6 +131,19 @@
         }
       },
       "additionalProperties": false
+    },
+    "comm": {
+      "type": "object",
+      "description": "ECL adoption declaration. Optional; absent when Eidolon does not target ECL.",
+      "properties": {
+        "envelope_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+        },
+        "emits":    { "type": "array", "items": { "type": "string" } },
+        "verifies": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

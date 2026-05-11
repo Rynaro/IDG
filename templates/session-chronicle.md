@@ -80,12 +80,23 @@ Use for documenting coding sessions — what happened, what changed, what was de
 
 ---
 
+## Communication Lineage
+
+> OPTIONAL — Populate when source artefacts arrived inside ECL v1.0 envelopes.
+> Omit this section entirely when no source carried an envelope.
+
+| Step | from → to | performative | message_id | verify |
+|---|---|---|---|---|
+| 1 | … → idg | … | … | pass / fail |
+
+---
+
 ## Provenance
 
 - **Scribe version**: 1.0.0
 - **Document type**: session-chronicle
 - **Generated**: [timestamp]
-- **Source artifacts**: [list]
+- **Source artifacts**: [list; ECL envelope sources may be cited as `ecl://thread/<thread_id>/message/<message_id>`]
 - **CHT scores**: C:[N]/5 H:[N]/5 T:[N]/5
 - **Coverage**: [assessment]
 - **Flags**: [any unresolved markers]
@@ -102,4 +113,4 @@ Use for documenting coding sessions — what happened, what changed, what was de
 
 ---
 
-*Scribe v1.1.0 — Session Chronicle Template*
+*Scribe v1.2.0 — Session Chronicle Template*

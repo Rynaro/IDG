@@ -1,12 +1,18 @@
 ---
 name: scribe
-version: 1.1.0
+version: 1.2.0
 methodology: SCRIBE
-methodology_version: 1.1.0
+methodology_version: 1.2.0
 role: documentation-synthesis — transforms context into structured, grounded, actionable documents
 handoffs:
   upstream: []
   downstream: []
+comm:
+  envelope_version: "1.0"
+  emits: []
+  verifies:
+    - apivr-completion-report
+    - root-cause-report
 ---
 
 # Scribe — Documentation Synthesis Agent

@@ -98,7 +98,7 @@ Use for operational procedures — deployments, incident response, maintenance t
 - **Scribe version**: 1.0.0
 - **Document type**: runbook
 - **Generated**: [timestamp]
-- **Source artifacts**: [list]
+- **Source artifacts**: [list; ECL envelope sources MAY be cited as `ecl://thread/<thread_id>/message/<message_id>`]
 - **CHT scores**: C:[N]/5 H:[N]/5 T:[N]/5
 - **Coverage**: [assessment]
 - **Flags**: [any unresolved markers]
@@ -116,4 +116,4 @@ Use for operational procedures — deployments, incident response, maintenance t
 
 ---
 
-*Scribe v1.1.0 — Runbook Template*
+*Scribe v1.2.0 — Runbook Template*

@@ -63,6 +63,7 @@ Is every claim grounded in source material?
 - `[DISPUTED]` markers present where sources conflict
 - No invented rationale attributed to people or teams
 - Error messages, commands, file paths are exact (not paraphrased)
+- If the source artefact arrived with an `*.envelope.json` sidecar, the provenance block records the envelope's `message_id`, `thread_id`, `from`, `performative`, and `verify_pass` / `verify_fail` outcome. A `verify_fail` does not lower the score below 4 by itself; it is captured as `[DISPUTED]` in the document.
 
 ---
 
@@ -117,7 +118,8 @@ Use the most specific identifier available:
 | Conversation | `conversation:turn-[N]` |
 | External doc | `doc:[title-or-url]` |
 | Spec / ticket | `spec:[ID]` |
+| ECL envelope | `ecl://thread/<thread_id>/message/<message_id>` |
 
 ---
 
-*Scribe v1.1.0 — Verification Skill*
+*Scribe v1.2.0 — Verification Skill*
