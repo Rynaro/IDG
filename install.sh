@@ -2,9 +2,17 @@
 set -euo pipefail
 
 EIDOLON_NAME="idg"
-EIDOLON_VERSION="1.1.5"
+EIDOLON_VERSION="1.2.0"
 METHODOLOGY="IDG"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# --- ECL version ---
+ECL_VERSION_FILE="${SCRIPT_DIR}/ECL_VERSION"
+if [[ -f "$ECL_VERSION_FILE" ]]; then
+  ECL_VERSION="$(head -n1 "$ECL_VERSION_FILE" | tr -d '[:space:]')"
+else
+  ECL_VERSION="none"
+fi
 
 # --- defaults ---
 TARGET="./.eidolons/${EIDOLON_NAME}"
@@ -197,6 +205,10 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     echo "  ${TARGET}/templates/adr.md"
     echo "  ${TARGET}/templates/runbook.md"
     echo "  ${TARGET}/templates/change-narrative.md"
+    echo "  ${TARGET}/schemas/ecl-envelope.v1.json"
+    echo "  ${TARGET}/schemas/ecl-base-profile.v1.json"
+    echo "  ${TARGET}/schemas/apivr-completion-report-profile.v1.json"
+    echo "  ${TARGET}/schemas/root-cause-report-profile.v1.json"
     hosts_contains "claude-code" && echo "  CLAUDE.md (append @${TARGET_REL}/agent.md)"
     hosts_contains "claude-code" && echo "  .claude/agents/${EIDOLON_NAME}.md"
     hosts_contains "copilot"     && echo "  .github/copilot-instructions.md"
@@ -209,7 +221,8 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     mkdir -p \
       "${TARGET}/skills/composition" \
       "${TARGET}/skills/verification" \
-      "${TARGET}/templates"
+      "${TARGET}/templates" \
+      "${TARGET}/schemas"
 
     # Copy agent files
     cp "${SCRIPT_DIR}/agent.md"                                   "${TARGET}/agent.md"
@@ -221,6 +234,12 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     cp "${SCRIPT_DIR}/templates/adr.md"                           "${TARGET}/templates/adr.md"
     cp "${SCRIPT_DIR}/templates/runbook.md"                       "${TARGET}/templates/runbook.md"
     cp "${SCRIPT_DIR}/templates/change-narrative.md"              "${TARGET}/templates/change-narrative.md"
+
+    # Copy vendored ECL schemas (reference material for Intake skill)
+    cp "${SCRIPT_DIR}/schemas/ecl-envelope.v1.json"                       "${TARGET}/schemas/ecl-envelope.v1.json"
+    cp "${SCRIPT_DIR}/schemas/ecl-base-profile.v1.json"                   "${TARGET}/schemas/ecl-base-profile.v1.json"
+    cp "${SCRIPT_DIR}/schemas/apivr-completion-report-profile.v1.json"    "${TARGET}/schemas/apivr-completion-report-profile.v1.json"
+    cp "${SCRIPT_DIR}/schemas/root-cause-report-profile.v1.json"          "${TARGET}/schemas/root-cause-report-profile.v1.json"
 
     # --- shared composable block (opt-in via --shared-dispatch) ---
     SHARED_BLOCK="## ${METHODOLOGY} — Documentation synthesis (v${EIDOLON_VERSION})
@@ -416,6 +435,10 @@ if [[ "$DRY_RUN" != "true" ]]; then
     sha_adr=$(sha256_file "${TARGET}/templates/adr.md")
     sha_run=$(sha256_file "${TARGET}/templates/runbook.md")
     sha_cn=$(sha256_file "${TARGET}/templates/change-narrative.md")
+    sha_ecl_env=$(sha256_file "${TARGET}/schemas/ecl-envelope.v1.json")
+    sha_ecl_base=$(sha256_file "${TARGET}/schemas/ecl-base-profile.v1.json")
+    sha_ecl_apivr=$(sha256_file "${TARGET}/schemas/apivr-completion-report-profile.v1.json")
+    sha_ecl_rcr=$(sha256_file "${TARGET}/schemas/root-cause-report-profile.v1.json")
 
     files_entries=""
     files_append() {
@@ -435,6 +458,10 @@ if [[ "$DRY_RUN" != "true" ]]; then
     files_append "{\"path\": \"templates/adr.md\",               \"sha256\": \"${sha_adr}\",   \"role\": \"template\",    \"mode\": \"created\"}"
     files_append "{\"path\": \"templates/runbook.md\",           \"sha256\": \"${sha_run}\",   \"role\": \"template\",    \"mode\": \"created\"}"
     files_append "{\"path\": \"templates/change-narrative.md\",  \"sha256\": \"${sha_cn}\",    \"role\": \"template\",    \"mode\": \"created\"}"
+    files_append "{\"path\": \"schemas/ecl-envelope.v1.json\",                    \"sha256\": \"${sha_ecl_env}\",   \"role\": \"other\", \"mode\": \"created\"}"
+    files_append "{\"path\": \"schemas/ecl-base-profile.v1.json\",                \"sha256\": \"${sha_ecl_base}\",  \"role\": \"other\", \"mode\": \"created\"}"
+    files_append "{\"path\": \"schemas/apivr-completion-report-profile.v1.json\", \"sha256\": \"${sha_ecl_apivr}\", \"role\": \"other\", \"mode\": \"created\"}"
+    files_append "{\"path\": \"schemas/root-cause-report-profile.v1.json\",       \"sha256\": \"${sha_ecl_rcr}\",   \"role\": \"other\", \"mode\": \"created\"}"
 
     # Codex artefacts (EIIS v1.1 §4.5.5).
     if hosts_contains "codex"; then
@@ -477,6 +504,11 @@ ${files_entries}
     "reads_network": false,
     "writes_repo": false,
     "persists": []
+  },
+  "comm": {
+    "envelope_version": "${ECL_VERSION}",
+    "emits": [],
+    "verifies": ["apivr-completion-report", "root-cause-report"]
   }
 }
 MANIFEST_EOF

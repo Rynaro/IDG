@@ -4,6 +4,117 @@ Loaded during the Draft phase. Governs how the Scribe transforms context into st
 
 ---
 
+## Envelope-Aware Intake (ECL v1.0)
+
+When classifying a source artefact during the **I — Intake** phase, check whether the artefact arrived with an ECL sidecar envelope. The four steps below are always executed in order when any `*.envelope.json` file is present; the overall verification is **warn-only** — IDG always produces the document.
+
+### Step 1 — Detect
+
+Look for a file whose name is `<payload-basename>.envelope.json` in the same location as the payload. Examples:
+
+- Payload: `apivr-completion-report.md` → Sidecar: `apivr-completion-report.md.envelope.json`
+- Payload: `root-cause-report.md` → Sidecar: `root-cause-report.md.envelope.json`
+
+If **no sidecar is found**, proceed normally. In the provenance block note: "no envelope; ECL verification skipped." No CHT score impact.
+
+### Step 2 — Validate
+
+Validate the sidecar JSON against the vendored schema at `schemas/ecl-envelope.v1.json`.
+
+**Edge case — version outside compatibility range**: If `envelope.envelope_version` does not match `^1\.0(\.\d+)?$`, add a `[GAP]` marker:
+
+```
+[GAP] envelope_version <X.Y> is outside the IDG v1.2.0 compatibility range (1.0.x).
+Verification skipped; chronicle proceeds without envelope provenance.
+```
+
+### Step 3 — Recompute and compare sha256
+
+Compute the sha256 digest of the payload file and compare it to `envelope.integrity.value`.
+
+**Only `method: "sha256"` is supported.** If `integrity.method == "hmac-sha256"`, add:
+
+```
+[GAP] integrity.method is hmac-sha256; shared secret unavailable to IDG.
+Verification inconclusive; treating envelope as informational only.
+```
+
+**Digest matches** → record `verify_pass` in working memory.
+**Digest mismatches** → record `verify_fail` in working memory; add `[DISPUTED]` to the chronicle:
+
+```
+[DISPUTED] ECL envelope sha256 mismatch for <payload-path>.
+Envelope claims <expected>; recomputed digest is <actual>.
+Source integrity cannot be confirmed; treat content with caution.
+```
+
+### Step 4 — Check performative
+
+Confirm that `envelope.performative` is in the allowed inbound set for the sender:
+
+| Sender (`from.eidolon`) | Allowed performatives |
+|---|---|
+| `apivr` | `PROPOSE`, `INFORM` |
+| `vigil` | `PROPOSE`, `INFORM` |
+| any other | any (treat as `INFORM`) |
+
+If the performative is outside the allowed set for the declared sender, add:
+
+```
+[GAP] Unexpected performative <X> from <sender>; treating as INFORM and proceeding.
+```
+
+### Record and trace
+
+After Steps 1–4, record the full outcome in working memory:
+
+```
+ecl_verification:
+  message_id: <uuid>
+  thread_id: <uuid>
+  from: <eidolon slug>
+  performative: <value>
+  outcome: verify_pass | verify_fail | inconclusive | skipped
+```
+
+This record surfaces in the Gate phase and populates the chronicle's Communication Lineage section and provenance block.
+
+**RECOMMENDED**: Append a trace event at `.eidolons/.trace/<thread_id>.jsonl` per ECL §5.1.2:
+
+```jsonl
+{"event":"receive","ts":"<RFC3339>","message_id":"<uuid>","from":"<slug>","to":"idg"}
+{"event":"verify_pass","ts":"<RFC3339>","message_id":"<uuid>"}
+```
+
+(or `"verify_fail"` with a `"reason"` field on mismatch). This trace is RECOMMENDED, not REQUIRED.
+
+**IDG does not, and shall not, fetch any envelope referenced via `input_handles`**. P0 forbids retrieval. If a handle resolves to a path already in-context (the requester has explicitly provided the file), reading it is permitted. Otherwise mark `[GAP]`.
+
+### Worked examples
+
+**Example A — verify_pass**
+
+Input: `report.md` + `report.md.envelope.json`
+- Schema validates. `integrity.method == "sha256"`. `sha256(report.md)` matches `envelope.integrity.value`. `performative == "PROPOSE"` (allowed from `apivr`).
+- Working memory: `outcome: verify_pass`, `performative: PROPOSE`, `message_id: abc-123`.
+- Provenance block entry: `ecl://thread/<thread_id>/message/abc-123 — verify_pass`.
+
+**Example B — verify_fail (sha256 mismatch)**
+
+Input: `report.md` + `report.md.envelope.json`
+- Schema validates. `integrity.method == "sha256"`. Recomputed digest does NOT match `envelope.integrity.value`.
+- Working memory: `outcome: verify_fail`.
+- Chronicle body gains:
+  ```
+  [DISPUTED] ECL envelope sha256 mismatch for report.md.
+  Envelope claims d4e5f6...; recomputed digest is a1b2c3....
+  Source integrity cannot be confirmed; treat content with caution.
+  ```
+- Provenance block entry: `ecl://thread/<thread_id>/message/<id> — verify_fail`.
+- Truthfulness score: NOT automatically lowered; the `[DISPUTED]` marker documents the discrepancy. Document is delivered with the flag.
+
+---
+
 ## Section-Level Composition
 
 Write one section at a time, in topological order. For each section:
@@ -119,4 +230,4 @@ Before moving to the next section, verify:
 
 ---
 
-*Scribe v1.1.0 — Composition Skill*
+*Scribe v1.2.0 — Composition Skill*

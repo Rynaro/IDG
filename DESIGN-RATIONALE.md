@@ -88,6 +88,20 @@ This thesis determines every design boundary. The research literature (DocAgent,
 
 ---
 
+### 9. Adopting ECL v1.0 Inbound Verification (Warn-Only)
+
+**Research input**: ECL v1.0 §1, §3, §6; AiTM and prompt-infection threat models cited in §6.
+
+**Decision**: IDG declares `ECL_VERSION = 1.0` and verifies inbound envelopes (sha256 + schema + performative) when they are present. Verification is warn-only at v1.0 — IDG never refuses to chronicle.
+
+**Rationale**: IDG's CHT-Truthfulness gate is a near-perfect fit for envelope provenance. A `verify_pass` is the strongest source citation available; `verify_fail` becomes a `[DISPUTED]` marker in the chronicle. The warn-only stance is consistent with ECL's own opt-in opening and with IDG's "deliver with flags" philosophy.
+
+**Production observation**: Envelope `assumptions[]` and `confidence` populate `[DECISION]` markers with zero inference, sharpening the "no fabrication" rule.
+
+**[DECISION] for ECL v1.1**: Enumerate `idg → human` and/or `idg → orchestrator` outbound contracts. ECL v1.0 treats IDG as terminal, which understates IDG's role: chronicles, ADRs, and runbooks are first-class artefacts whose intended audience is "the human reader" or "the orchestrator at session-end". A future `idg → human` contract with `INFORM`/`PROPOSE` performatives and `documentation-output` kind is the natural v1.1 enumeration target.
+
+---
+
 ## What Was Explicitly Excluded (and Why)
 
 | Excluded | Reason |
@@ -134,4 +148,4 @@ This is well under the ~4,350 token working set of comparable agents and signifi
 
 ---
 
-*Scribe v1.1.0 — Design Rationale*
+*Scribe v1.2.0 — Design Rationale*
