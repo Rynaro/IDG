@@ -8,7 +8,7 @@ handoffs:
   upstream: []
   downstream: []
 comm:
-  envelope_version: "1.0"
+  envelope_version: "1.2"
   emits: []
   verifies:
     - apivr-completion-report
