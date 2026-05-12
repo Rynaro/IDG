@@ -7,6 +7,25 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.1] — 2026-05-12 — Declare ECL v1.2 conformance
+
+### Changed
+- `ECL_VERSION` file: `1.0` → `1.2`. Targets the latest ECL spec
+  (`Rynaro/eidolons-ecl@v1.2.0`); IDG's inbound verifier remains
+  byte-compatible (v1.2 is backward-compatible with v1.0 per ECL §1.1.1).
+- `agent.md` + `AGENTS.md` frontmatter: `comm.envelope_version`
+  `"1.0"` → `"1.2"`.
+- `install.sh`: `EIDOLON_VERSION` `1.2.0` → `1.2.1` (PATCH bump —
+  declaration-only change; no behaviour change).
+
+### Notes
+- No envelope-format changes. IDG continues to accept v1.0/v1.1/v1.2
+  envelopes from upstream Eidolons (APIVR-Δ completion-report,
+  VIGIL root-cause-report). Warn-only verify semantics preserved —
+  verification misses surface as `[DISPUTED]` markers in the chronicle.
+- IDG remains terminal in the canonical hand-off graph; no emit
+  envelopes shipped.
+
 ## [1.2.0] — 2026-05-11 — ECL v1.0 inbound conformance
 
 ### Added
