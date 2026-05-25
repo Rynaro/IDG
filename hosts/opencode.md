@@ -13,9 +13,9 @@ The installer creates `.opencode/.eidolons/idg.md`.
 The installed agent descriptor at `.opencode/.eidolons/idg.md`:
 
 ```markdown
-# SCRIBE — scribe
+# IDG — scribe
 
-See `.eidolons/idg/agent.md` for the SCRIBE methodology entry point.
+See `.eidolons/idg/agent.md` for the IDG methodology entry point.
 ```
 
 OpenCode picks up `.opencode/agents/*.md` files automatically and makes them available as named agents in the session.

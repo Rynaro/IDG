@@ -3,8 +3,8 @@
 Load order for this repository:
 
 1. `agent.md` — entry point, always loaded (≤ 1,000 tokens)
-2. `SCRIBE.md` — full methodology specification
-3. `skills/<phase>/SKILL.md` — on-demand per phase
+2. `SPEC.md` — full methodology specification
+3. `skills/<phase>.md` — on-demand per phase (flat layout)
 4. `templates/<artifact>.md` — on-demand per output type
 5. `schemas/ecl-envelope.v1.json` — load on demand during Intake when an `*.envelope.json` sidecar is detected.
 

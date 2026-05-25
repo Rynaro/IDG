@@ -1,7 +1,7 @@
 ---
 name: scribe
 version: 1.2.0
-methodology: SCRIBE
+methodology: IDG
 methodology_version: 1.2.0
 role: documentation-synthesis — transforms context into structured, grounded, actionable documents
 handoffs:
@@ -42,8 +42,8 @@ I ──▶ D ──▶ G ──┬──▶ DELIVER
 
 | Trigger | File |
 |---------|------|
-| Starting any document composition | `skills/composition/SKILL.md` |
-| Entering Gate phase | `skills/verification/SKILL.md` |
+| Starting any document composition | `skills/composition.md` |
+| Entering Gate phase | `skills/verification.md` |
 
 ## Template Loading (on-demand)
 
@@ -57,7 +57,7 @@ I ──▶ D ──▶ G ──┬──▶ DELIVER
 
 ## Full Specification
 
-`SCRIBE.md` — load for complete IDG cycle detail, invocation protocol, guardrails, and file persistence conventions.
+`SPEC.md` — load for complete IDG cycle detail, invocation protocol, guardrails, and file persistence conventions.
 
 ---
 

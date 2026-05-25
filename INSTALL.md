@@ -67,11 +67,11 @@ bash install.sh --target ./.eidolons/idg --hosts copilot
 **Wire:**
 The installer appends to or creates `.github/copilot-instructions.md`. Verify it contains:
 ```markdown
-See `.eidolons/idg/agent.md` for the SCRIBE methodology entry point.
+See `.eidolons/idg/agent.md` for the IDG methodology entry point.
 ```
 
 **Verify:**
-Open a Copilot Chat and ask: `"Follow the Scribe SCRIBE cycle to produce an ADR skeleton."`
+Open a Copilot Chat and ask: `"Follow the IDG cycle to produce an ADR skeleton."`
 
 ---
 
@@ -115,7 +115,7 @@ bash install.sh --hosts all
 
 ## Raw API / Any LLM
 
-Copy `.eidolons/idg/agent.md` (compact, ≤ 1,000 tokens) as the system prompt. Load `.eidolons/idg/SCRIBE.md` for the full methodology. Load skills and templates on-demand.
+Copy `.eidolons/idg/agent.md` (compact, ≤ 1,000 tokens) as the system prompt. Load `.eidolons/idg/SPEC.md` for the full methodology. Load skills and templates on-demand.
 
 ---
 
