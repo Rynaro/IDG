@@ -2,7 +2,8 @@
 set -euo pipefail
 
 EIDOLON_NAME="idg"
-EIDOLON_VERSION="1.2.2"
+EIDOLON_SLUG="idg"
+EIDOLON_VERSION="1.3.0"
 METHODOLOGY="IDG"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -129,11 +130,11 @@ sha256_file() {
   fi
 }
 
-# --- resolve spec source (support both legacy SCRIBE.md and canonical IDG.md) ---
-if [[ -f "${SCRIPT_DIR}/IDG.md" ]]; then
-  SRC_SPEC="${SCRIPT_DIR}/IDG.md"
-else
-  SRC_SPEC="${SCRIPT_DIR}/SCRIBE.md"
+# --- resolve spec source ---
+SRC_SPEC="${SCRIPT_DIR}/SPEC.md"
+if [[ ! -f "${SRC_SPEC}" ]]; then
+  echo "ERROR: spec source not found: ${SRC_SPEC}" >&2
+  exit 3
 fi
 
 # upsert_eidolon_block <file> <content>
@@ -197,10 +198,10 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     echo "[dry-run] Hosts:  ${HOSTS}"
     echo "[dry-run] Would write:"
     echo "  ${TARGET}/agent.md"
-    echo "  ${TARGET}/IDG.md"
+    echo "  ${TARGET}/SPEC.md"
     echo "  ${TARGET}/DESIGN-RATIONALE.md"
-    echo "  ${TARGET}/skills/composition/SKILL.md"
-    echo "  ${TARGET}/skills/verification/SKILL.md"
+    echo "  ${TARGET}/skills/composition.md"
+    echo "  ${TARGET}/skills/verification.md"
     echo "  ${TARGET}/templates/session-chronicle.md"
     echo "  ${TARGET}/templates/adr.md"
     echo "  ${TARGET}/templates/runbook.md"
@@ -219,17 +220,14 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
   else
     # Create directory structure
     mkdir -p \
-      "${TARGET}/skills/composition" \
-      "${TARGET}/skills/verification" \
+      "${TARGET}/skills" \
       "${TARGET}/templates" \
       "${TARGET}/schemas"
 
     # Copy agent files
     cp "${SCRIPT_DIR}/agent.md"                                   "${TARGET}/agent.md"
-    cp "${SRC_SPEC}"                                              "${TARGET}/IDG.md"
+    cp "${SRC_SPEC}"                                              "${TARGET}/SPEC.md"
     cp "${SCRIPT_DIR}/DESIGN-RATIONALE.md"                        "${TARGET}/DESIGN-RATIONALE.md"
-    cp "${SCRIPT_DIR}/skills/composition/SKILL.md"                "${TARGET}/skills/composition/SKILL.md"
-    cp "${SCRIPT_DIR}/skills/verification/SKILL.md"               "${TARGET}/skills/verification/SKILL.md"
     cp "${SCRIPT_DIR}/templates/session-chronicle.md"             "${TARGET}/templates/session-chronicle.md"
     cp "${SCRIPT_DIR}/templates/adr.md"                           "${TARGET}/templates/adr.md"
     cp "${SCRIPT_DIR}/templates/runbook.md"                       "${TARGET}/templates/runbook.md"
@@ -245,7 +243,7 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     SHARED_BLOCK="## ${METHODOLOGY} — Documentation synthesis (v${EIDOLON_VERSION})
 
 Entry:     \`${TARGET_REL}/agent.md\`
-Full spec: \`${TARGET_REL}/${METHODOLOGY}.md\`
+Full spec: \`${TARGET_REL}/SPEC.md\`
 Cycle:     I (Intake) → D (Draft) → G (Gate)
 
 **P0 (non-negotiable):** synthesis from provided context only (no retrieval or code analysis); structural markers ([DECISION], [ACTION], [DISPUTED], [GAP]) required; CHT verification gate (Completeness / Helpfulness / Truthfulness) with one revision max; provenance-first (every claim traces to source session)."
@@ -268,19 +266,34 @@ Cycle:     I (Intake) → D (Draft) → G (Gate)
         in_fm { p=index($0, field ":"); if (p==1) { sub("^" field ":[[:space:]]*", ""); print; exit } }
       ' "$1"
     }
+    # wire_skill <skill_slug>
+    #
+    # Dual-writes a skill file per EIIS v1.3 §4.2.4:
+    #   - source-of-truth: ${TARGET}/skills/<skill_slug>.md   (flat layout)
+    #   - vendor copy:     .claude/skills/${EIDOLON_SLUG}-<skill_slug>/SKILL.md
+    #
+    # Also writes copilot/cursor vendor copies when those hosts are wired.
     wire_skill() {
-      local src_dir="$1" skill_name="$2"
-      local src_skill="${src_dir}/SKILL.md"
-      [[ -f "$src_skill" ]] || return
+      local skill="$1"
+      local src="${SCRIPT_DIR}/skills/${skill}.md"
+      local dst_src="${TARGET}/skills/${skill}.md"
+      local dst_vendor=".claude/skills/${EIDOLON_SLUG}-${skill}/SKILL.md"
+
+      if [[ ! -f "${src}" ]]; then
+        echo "ERROR: skill source not found: ${src}" >&2
+        exit 3
+      fi
+
+      mkdir -p "$(dirname "${dst_src}")"
+      cp "${src}" "${dst_src}"
+
       local description
-      description="$(extract_fm_field "$src_skill" "description")"
-      [[ -z "$description" ]] && description="${skill_name}"
+      description="$(extract_fm_field "${src}" "description")"
+      [[ -z "$description" ]] && description="${skill}"
 
       if hosts_contains "claude-code"; then
-        local dst_dir=".claude/skills/${skill_name}"
-        rm -rf "$dst_dir"
-        mkdir -p "$dst_dir"
-        cp -R "${src_dir}/." "${dst_dir}/"
+        mkdir -p "$(dirname "${dst_vendor}")"
+        cp "${src}" "${dst_vendor}"
       fi
       if hosts_contains "copilot"; then
         mkdir -p ".github/instructions"
@@ -289,8 +302,8 @@ Cycle:     I (Intake) → D (Draft) → G (Gate)
           echo "applyTo: \"**\""
           echo "description: \"${description}\""
           echo "---"
-          strip_frontmatter "$src_skill"
-        } > ".github/instructions/${skill_name}.instructions.md"
+          strip_frontmatter "${src}"
+        } > ".github/instructions/${EIDOLON_SLUG}-${skill}.instructions.md"
       fi
       if hosts_contains "cursor"; then
         mkdir -p ".cursor/rules"
@@ -299,14 +312,14 @@ Cycle:     I (Intake) → D (Draft) → G (Gate)
           echo "description: \"${description}\""
           echo "alwaysApply: false"
           echo "---"
-          strip_frontmatter "$src_skill"
-        } > ".cursor/rules/${skill_name}.mdc"
+          strip_frontmatter "${src}"
+        } > ".cursor/rules/${EIDOLON_SLUG}-${skill}.mdc"
       fi
     }
 
-    # Emit per-skill vendor files for every skill.
+    # Emit per-skill source-of-truth + vendor files for every skill.
     for skill in composition verification; do
-      wire_skill "${SCRIPT_DIR}/skills/${skill}" "${EIDOLON_NAME}-${skill}"
+      wire_skill "${skill}"
     done
 
     # --- host dispatch wiring ---
@@ -333,7 +346,7 @@ structured documentation (chronicle, ADR, runbook, change-narrative) with
 markers that verify provenance back to the source session.
 
 See \`${TARGET_REL}/agent.md\` for P0 rules and
-\`${TARGET_REL}/${METHODOLOGY}.md\` for the full specification. Skills load on
+\`${TARGET_REL}/SPEC.md\` for the full specification. Skills load on
 demand — see \`${TARGET_REL}/skills/\`.
 AGENT
       fi
@@ -378,7 +391,7 @@ markers that verify provenance back to the source session.
 
 When Codex delegates to this subagent, treat the methodology in
 \`${TARGET_REL}/agent.md\` as authoritative. The full ruleset lives in
-\`${TARGET_REL}/${METHODOLOGY}.md\`. Skills load on demand — see
+\`${TARGET_REL}/SPEC.md\`. Skills load on demand — see
 \`${TARGET_REL}/skills/\`.
 
 ## P0 (non-negotiable)
@@ -423,14 +436,15 @@ if [[ "$DRY_RUN" != "true" ]]; then
   done
   hosts_json+="]"
 
-  # Build files_written JSON array
+  # Build files_written and skills JSON arrays
   files_json="[]"
+  skills_json="[]"
   if [[ "$MANIFEST_ONLY" != "true" && -f "${TARGET}/agent.md" ]]; then
     sha_agent=$(sha256_file "${TARGET}/agent.md")
-    sha_spec=$(sha256_file "${TARGET}/IDG.md")
+    sha_spec=$(sha256_file "${TARGET}/SPEC.md")
     sha_dr=$(sha256_file "${TARGET}/DESIGN-RATIONALE.md")
-    sha_comp=$(sha256_file "${TARGET}/skills/composition/SKILL.md")
-    sha_verif=$(sha256_file "${TARGET}/skills/verification/SKILL.md")
+    sha_comp=$(sha256_file "${TARGET}/skills/composition.md")
+    sha_verif=$(sha256_file "${TARGET}/skills/verification.md")
     sha_chron=$(sha256_file "${TARGET}/templates/session-chronicle.md")
     sha_adr=$(sha256_file "${TARGET}/templates/adr.md")
     sha_run=$(sha256_file "${TARGET}/templates/runbook.md")
@@ -439,6 +453,14 @@ if [[ "$DRY_RUN" != "true" ]]; then
     sha_ecl_base=$(sha256_file "${TARGET}/schemas/ecl-base-profile.v1.json")
     sha_ecl_apivr=$(sha256_file "${TARGET}/schemas/apivr-completion-report-profile.v1.json")
     sha_ecl_rcr=$(sha256_file "${TARGET}/schemas/root-cause-report-profile.v1.json")
+
+    # SHA of vendor copies (same content as source-of-truth)
+    sha_comp_vendor=""
+    sha_verif_vendor=""
+    if hosts_contains "claude-code"; then
+      sha_comp_vendor=$(sha256_file ".claude/skills/${EIDOLON_SLUG}-composition/SKILL.md")
+      sha_verif_vendor=$(sha256_file ".claude/skills/${EIDOLON_SLUG}-verification/SKILL.md")
+    fi
 
     files_entries=""
     files_append() {
@@ -450,10 +472,14 @@ if [[ "$DRY_RUN" != "true" ]]; then
       fi
     }
     files_append "{\"path\": \"agent.md\",                       \"sha256\": \"${sha_agent}\", \"role\": \"entry-point\", \"mode\": \"created\"}"
-    files_append "{\"path\": \"IDG.md\",                         \"sha256\": \"${sha_spec}\",  \"role\": \"spec\",        \"mode\": \"created\"}"
+    files_append "{\"path\": \"SPEC.md\",                        \"sha256\": \"${sha_spec}\",  \"role\": \"spec\",        \"mode\": \"created\"}"
     files_append "{\"path\": \"DESIGN-RATIONALE.md\",            \"sha256\": \"${sha_dr}\",    \"role\": \"other\",       \"mode\": \"created\"}"
-    files_append "{\"path\": \"skills/composition/SKILL.md\",    \"sha256\": \"${sha_comp}\",  \"role\": \"skill\",       \"mode\": \"created\"}"
-    files_append "{\"path\": \"skills/verification/SKILL.md\",   \"sha256\": \"${sha_verif}\", \"role\": \"skill\",       \"mode\": \"created\"}"
+    files_append "{\"path\": \"skills/composition.md\",          \"sha256\": \"${sha_comp}\",  \"role\": \"skill\",       \"mode\": \"created\"}"
+    files_append "{\"path\": \"skills/verification.md\",         \"sha256\": \"${sha_verif}\", \"role\": \"skill\",       \"mode\": \"created\"}"
+    if hosts_contains "claude-code"; then
+      files_append "{\"path\": \".claude/skills/${EIDOLON_SLUG}-composition/SKILL.md\",  \"sha256\": \"${sha_comp_vendor}\",  \"role\": \"skill\", \"mode\": \"created\"}"
+      files_append "{\"path\": \".claude/skills/${EIDOLON_SLUG}-verification/SKILL.md\", \"sha256\": \"${sha_verif_vendor}\", \"role\": \"skill\", \"mode\": \"created\"}"
+    fi
     files_append "{\"path\": \"templates/session-chronicle.md\", \"sha256\": \"${sha_chron}\", \"role\": \"template\",    \"mode\": \"created\"}"
     files_append "{\"path\": \"templates/adr.md\",               \"sha256\": \"${sha_adr}\",   \"role\": \"template\",    \"mode\": \"created\"}"
     files_append "{\"path\": \"templates/runbook.md\",           \"sha256\": \"${sha_run}\",   \"role\": \"template\",    \"mode\": \"created\"}"
@@ -478,6 +504,19 @@ if [[ "$DRY_RUN" != "true" ]]; then
     files_json="[
 ${files_entries}
   ]"
+
+    # Build skills[] JSON array (EIIS v1.3 §4.2.4)
+    if hosts_contains "claude-code"; then
+      skills_json="[
+    {\"name\": \"composition\",  \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/composition.md\",  \"source_sha256\": \"${sha_comp}\",  \"vendor_path\": \".claude/skills/${EIDOLON_SLUG}-composition/SKILL.md\",  \"vendor_sha256\": \"${sha_comp_vendor}\"},
+    {\"name\": \"verification\", \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/verification.md\", \"source_sha256\": \"${sha_verif}\", \"vendor_path\": \".claude/skills/${EIDOLON_SLUG}-verification/SKILL.md\", \"vendor_sha256\": \"${sha_verif_vendor}\"}
+  ]"
+    else
+      skills_json="[
+    {\"name\": \"composition\",  \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/composition.md\",  \"source_sha256\": \"${sha_comp}\"},
+    {\"name\": \"verification\", \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/verification.md\", \"source_sha256\": \"${sha_verif}\"}
+  ]"
+    fi
   fi
 
   AGENT_TOKENS=$(wc -w < "${TARGET}/agent.md" | awk '{printf "%d", $1/0.75}')
@@ -490,6 +529,8 @@ ${files_entries}
   "installed_at": "${INSTALLED_AT}",
   "target": "${TARGET}",
   "hosts_wired": ${hosts_json},
+  "spec_file": ".eidolons/${EIDOLON_SLUG}/SPEC.md",
+  "skills": ${skills_json},
   "files_written": ${files_json},
   "handoffs_declared": {
     "upstream": [],
