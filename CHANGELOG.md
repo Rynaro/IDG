@@ -7,6 +7,41 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.3.0] — 2026-05-25 — EIIS v1.3 layout normalization (SPEC.md + flat skills)
+
+### Changed
+- BREAKING: source file `SCRIBE.md` renamed to `SPEC.md`; install destination
+  renamed `IDG.md` → `SPEC.md` (EIIS v1.3 §1.8). The rename-on-copy fallback
+  block (`install.sh:132-137`) is retired.
+- BREAKING: skills layout flattened from `skills/<skill>/SKILL.md` (subdir) to
+  `skills/<skill>.md` (flat). Vendor copies at `.claude/skills/idg-<skill>/SKILL.md`
+  are unchanged. Per EIIS v1.3 §4.2.4.3.
+- `EIDOLON_VERSION` bumped from `1.2.2` to `1.3.0`.
+
+### Fixed
+- `agent.md` frontmatter `methodology: SCRIBE` corrected to `methodology: IDG`
+  (OQ-2 stale SCRIBE residue, GAP-3 from install-normalization scout report).
+- `agent.md` line 60 `SCRIBE.md` reference now points to `SPEC.md`.
+- `AGENTS.md`, `CLAUDE.md`, `hosts/*.md`, `INSTALL.md`, `.github/copilot-instructions.md`,
+  `DESIGN-RATIONALE.md`, and `evals/canary-missions.md` updated to remove remaining
+  SCRIBE residue (filename references and stale methodology labels).
+- Manifest `files_written[]` now records correct paths for skills
+  (`skills/composition.md`, `skills/verification.md`) and includes vendor-copy
+  entries for `.claude/skills/idg-*/SKILL.md` when `claude-code` is wired.
+
+### Added
+- Manifest `spec_file` field (EIIS v1.3 §1.8): `.eidolons/idg/SPEC.md`.
+- Manifest `skills[]` array (EIIS v1.3 §4.2.4): dual-write records for
+  `composition` and `verification` skills with `source_path`, `source_sha256`,
+  `vendor_path`, and `vendor_sha256`.
+- Vendored `schemas/install.manifest.v1.json` updated to include `spec_file`
+  and `skills` fields (additive; backward-compatible with v1.2 manifests).
+
+### Compliance
+- `EIIS_VERSION` bumped to `1.3`.
+
+---
+
 ## [1.2.2] — 2026-05-13 — declare ECL v2.0 conformance
 
 ### Changed
