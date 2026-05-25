@@ -16,9 +16,9 @@ The installed rule file at `.cursor/rules/idg.mdc`:
 ---
 alwaysApply: false
 ---
-# SCRIBE — scribe
+# IDG — scribe
 
-See `.eidolons/idg/agent.md` for the SCRIBE methodology entry point.
+See `.eidolons/idg/agent.md` for the IDG methodology entry point.
 ```
 
 `alwaysApply: false` means the rule loads on-demand when you reference it. To always load it, change to `alwaysApply: true` (adds ~800 tokens to every session).
@@ -36,7 +36,7 @@ For older Cursor versions, add to `.cursorrules`:
 In Cursor Composer:
 
 ```
-"@scribe — produce a runbook for deploying this service using the SCRIBE methodology."
+"@scribe — produce a runbook for deploying this service using the IDG methodology."
 ```
 
 Or reference the rule file directly:

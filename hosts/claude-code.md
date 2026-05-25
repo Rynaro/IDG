@@ -28,7 +28,7 @@ Claude Code loads `agent.md` into every session. Skills and templates load on-de
 ---
 name: scribe
 version: 1.1.0
-methodology: SCRIBE
+methodology: IDG
 role: documentation-synthesis — transforms context into structured, grounded, actionable documents
 ---
 ```
@@ -41,7 +41,7 @@ Open a Claude Code session in your project and run:
 "Using Scribe, write an ADR for choosing PostgreSQL over MySQL for its JSONB support. Include provenance metadata."
 ```
 
-Expected: Scribe loads `skills/composition/SKILL.md`, produces an ADR with `[DECISION]` marker, and delivers a provenance block with CHT scores.
+Expected: Scribe loads `skills/composition.md`, produces an ADR with `[DECISION]` marker, and delivers a provenance block with CHT scores.
 
 ## 4. Troubleshooting
 
@@ -49,9 +49,9 @@ Expected: Scribe loads `skills/composition/SKILL.md`, produces an ADR with `[DEC
 - Verify `.eidolons/idg/agent.md` exists: `ls .eidolons/idg/agent.md`
 - Verify the `@` path in `CLAUDE.md` is correct relative to project root
 
-**Scribe loading full SCRIBE.md on every invocation**
+**Scribe loading full SPEC.md on every invocation**
 - This is intentional only if explicitly referenced. If agent.md is the pointer, only ~800 tokens load at start.
 
 **Skills not found**
-- Verify `.eidolons/idg/skills/composition/SKILL.md` and `.eidolons/idg/skills/verification/SKILL.md` exist
+- Verify `.eidolons/idg/skills/composition.md` and `.eidolons/idg/skills/verification.md` exist
 - Check that paths are relative (not absolute) in the installed directory

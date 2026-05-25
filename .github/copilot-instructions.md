@@ -1,4 +1,4 @@
-# GitHub Copilot — Scribe (SCRIBE methodology)
+# GitHub Copilot — Scribe (IDG methodology)
 
 > Primary custom-instructions entry for GitHub Copilot. The authoritative
 > rule set is `AGENTS.md` at repo root (open standard, loaded by Cursor and
@@ -22,9 +22,9 @@ Scribe is a documentation synthesis specialist. It transforms raw session artifa
 | Phase | Trigger | Skill File |
 |-------|---------|-----------|
 | I — Intake | Classify doc type, validate context, build skeleton | *(no skill — entry point handles this)* |
-| D — Draft | Compose section by section with grounding | `skills/composition/SKILL.md` |
-| G — Gate | CHT verification pass | `skills/verification/SKILL.md` |
+| D — Draft | Compose section by section with grounding | `skills/composition.md` |
+| G — Gate | CHT verification pass | `skills/verification.md` |
 
 ## Full Spec
 
-`SCRIBE.md`
+`SPEC.md`

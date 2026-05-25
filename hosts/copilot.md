@@ -14,7 +14,7 @@ The installed dispatch entry in `.github/copilot-instructions.md`:
 
 ```markdown
 ## Scribe Agent
-See `.eidolons/idg/agent.md` for the SCRIBE methodology entry point.
+See `.eidolons/idg/agent.md` for the IDG methodology entry point.
 ```
 
 Copilot Chat loads `.github/copilot-instructions.md` as custom instructions automatically in repositories where it is present.
@@ -36,7 +36,7 @@ If using a workspace-level instructions file, also verify the path in `.vscode/s
 In Copilot Chat:
 
 ```
-"Follow the Scribe SCRIBE cycle to produce an ADR skeleton for: choosing Redis over Memcached for session caching."
+"Follow the IDG cycle to produce an ADR skeleton for: choosing Redis over Memcached for session caching."
 ```
 
 Expected: Copilot applies the IDG methodology, requests missing context if needed, and produces an ADR with structural markers.

@@ -11,7 +11,7 @@ Smoke tests for verifying a Scribe install. Run after `install.sh` to confirm th
 **Input prompt**:
 
 ```
-Using the Scribe SCRIBE methodology, synthesize an Architecture Decision Record from the following context:
+Using the IDG methodology, synthesize an Architecture Decision Record from the following context:
 
 Decision: The team chose PostgreSQL over MySQL.
 Reason: PostgreSQL's JSONB type was required for flexible schema storage without a separate document store.
@@ -55,7 +55,7 @@ Audience: Backend engineers on the team.
 **Input prompt**:
 
 ```
-Using the Scribe SCRIBE methodology, write a runbook for the deployment process.
+Using the IDG methodology, write a runbook for the deployment process.
 ```
 
 **Expected behavior**:

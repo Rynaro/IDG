@@ -1,7 +1,7 @@
 ---
 name: scribe
 version: 1.2.0
-methodology: SCRIBE
+methodology: IDG
 methodology_version: 1.2.0
 role: documentation-synthesis — transforms context into structured, grounded, actionable documents
 handoffs:
@@ -33,16 +33,16 @@ A standalone specialist agent that transforms context into structured, grounded,
 
 ## Skill Loading
 
-See `skills/<phase>/SKILL.md` — loaded on demand per phase.
+See `skills/<phase>.md` — loaded on demand per phase.
 
 | Trigger | Skill File |
 |---------|-----------|
-| Starting composition | `skills/composition/SKILL.md` |
-| Entering Gate phase | `skills/verification/SKILL.md` |
+| Starting composition | `skills/composition.md` |
+| Entering Gate phase | `skills/verification.md` |
 
 ## Full Specification
 
-See `SCRIBE.md`.
+See `SPEC.md`.
 
 ## Install
 

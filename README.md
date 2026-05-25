@@ -7,15 +7,13 @@ Give it session logs, code diffs, decision notes, or any raw material — it pro
 ## Architecture
 
 ```
-scribe/
+idg/
 ├── install.sh                  # Install into any project
-├── SCRIBE.md                   # Agent entry point (always loaded)
+├── SPEC.md                     # Full methodology specification
 ├── DESIGN-RATIONALE.md         # Research → design decision mapping
-├── skills/                     # Loaded on-demand per phase
-│   ├── composition/
-│   │   └── SKILL.md            # Writing methodology + style standards
-│   └── verification/
-│       └── SKILL.md            # CHT verification gates + provenance
+├── skills/                     # Loaded on-demand per phase (flat layout)
+│   ├── composition.md          # Writing methodology + style standards
+│   └── verification.md         # CHT verification gates + provenance
 └── templates/                  # Document skeletons per type
     ├── session-chronicle.md    # Long coding session documentation
     ├── adr.md                  # Architecture Decision Record
@@ -32,14 +30,14 @@ git clone https://github.com/Rynaro/scribe
 bash scribe/install.sh [target-directory]
 ```
 
-Default target: `./.eidolons/idg`. Then point your AI tooling at the installed `SCRIBE.md`:
+Default target: `./.eidolons/idg`. Then point your AI tooling at the installed `SPEC.md`:
 
 | Tooling | How to load |
 |---------|-------------|
-| **Claude Code** | `@.eidolons/idg/SCRIBE.md` or add to `CLAUDE.md` |
+| **Claude Code** | `@.eidolons/idg/agent.md` or add to `CLAUDE.md` |
 | **Cursor** | Add path to `.cursorrules` or custom instructions |
 | **Windsurf** | Add path to `.windsurfrules` |
-| **Raw API / any LLM** | Load `SCRIBE.md` as the system prompt |
+| **Raw API / any LLM** | Load `SPEC.md` as the system prompt |
 
 ### Alternative: Git submodule
 
@@ -68,7 +66,7 @@ Custom document types are supported — the Scribe builds a skeleton from contex
 
 ## Design Principles
 
-**Minimal entry point**: `SCRIBE.md` is the only file loaded at start. Skills and templates load on-demand per phase — do not pre-load them.
+**Minimal entry point**: `agent.md` is the only file loaded at start. Skills and templates load on-demand per phase — do not pre-load them.
 
 **Token-efficient**: Typical working set is ~2,200 tokens (entry point + one skill + one template). Leaves maximum context budget for source material.
 
