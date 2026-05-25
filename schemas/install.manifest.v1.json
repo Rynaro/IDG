@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Rynaro/eidolons-eiis/blob/v1.0.0/schemas/install.manifest.v1.json",
+  "$id": "https://github.com/Rynaro/eidolons-eiis/blob/v1.3.0/schemas/install.manifest.v1.json",
   "title": "EIIS install.manifest v1",
-  "description": "Written by install.sh into <target>/install.manifest.json after a successful install. Defined by EIIS v1.0 §3.",
+  "description": "Written by install.sh into <target>/install.manifest.json after a successful install. Defined by EIIS v1.0 §3; extended in v1.3 with spec_file and skills fields.",
   "type": "object",
   "required": [
     "eidolon",
@@ -144,6 +144,45 @@
         "verifies": { "type": "array", "items": { "type": "string" } }
       },
       "additionalProperties": false
+    },
+    "spec_file": {
+      "type": "string",
+      "pattern": "^\\.eidolons/[a-z][a-z0-9-]*/SPEC\\.md$",
+      "description": "Canonical full-spec path (EIIS v1.3+ §1.8). MUST point at the SPEC.md emitted by this install."
+    },
+    "skills": {
+      "type": "array",
+      "description": "Skills emitted by this install, with both source-of-truth and host-vendor paths (EIIS v1.3+ §4.2.4).",
+      "items": {
+        "type": "object",
+        "required": ["name", "source_path", "source_sha256"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "Skill slug, e.g. 'composition' or 'verify-incoming'."
+          },
+          "source_path": {
+            "type": "string",
+            "pattern": "^\\.eidolons/[a-z][a-z0-9-]*/skills/[a-z][a-z0-9-]*\\.md$",
+            "description": "Source-of-truth flat path."
+          },
+          "source_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$"
+          },
+          "vendor_path": {
+            "type": "string",
+            "pattern": "^\\.claude/skills/[a-z][a-z0-9-]*-[a-z][a-z0-9-]*/SKILL\\.md$",
+            "description": "Claude Code host vendor copy. Present when claude-code is in hosts_wired."
+          },
+          "vendor_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false
