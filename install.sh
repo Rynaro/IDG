@@ -270,6 +270,9 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
       "${TARGET}/templates" \
       "${TARGET}/schemas"
 
+    # Sweep legacy v1.2-era artefacts before writing new content.
+    cleanup_legacy_v1_2 "${TARGET}"
+
     # Copy agent files
     cp "${SCRIPT_DIR}/agent.md"                                   "${TARGET}/agent.md"
     cp "${SRC_SPEC}"                                              "${TARGET}/SPEC.md"
