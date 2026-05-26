@@ -7,6 +7,45 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.4.0] — 2026-05-26
+
+### Changed
+- Declares EIIS v1.4 conformance (`EIIS_VERSION = 1.4`).
+- BREAKING (install-target): `DESIGN-RATIONALE.md` is no longer copied to
+  `<target>/`. The source-repo file at the IDG root is unchanged (EIIS §1.1
+  source-repo MUSTs retain it).
+- `.claude/agents/idg.md` HEREDOC rewritten per EIIS v1.4 §4.2.6: references
+  both `./.eidolons/idg/agent.md` (always-loaded P0 rules) and
+  `./.eidolons/idg/SPEC.md` (deep on-demand spec); adds `model: haiku`
+  frontmatter. Legacy `IDG.md` reference removed.
+- `agent.md` role in `files_written[]` changed from `entry-point` to
+  `agent-profile` (EIIS v1.4 §1.8.6 new role value).
+- `LEGACY_SPEC_FILES` extended with `DESIGN-RATIONALE.md` so upgrade-from-v1.3.1
+  sweeps the stale install-target copy.
+- Vendored `schemas/install.manifest.v1.json` synced to EIIS v1.4 (adds
+  `agent-profile` and `ecl-version` to the `role` enum; adds optional
+  `canonical_inventory_strict` field; retains IDG-local `comm` property).
+- Fixture `evals/fixtures/install.manifest.json` updated to v1.4 format
+  (role `agent-profile`, `ECL_VERSION` entry, v1.4.0 version).
+
+### Added
+- `<target>/ECL_VERSION` is now written by `install.sh` with `role:
+  "ecl-version"` (EIIS v1.4 §3.7.1; closes canonical-inventory G3).
+- Manifest-driven `canonical_inventory_sweep` helper at install-end (EIIS v1.4
+  §6.X). Removes any file under `<target>/` not in the current run's
+  `files_written[]` allow-set; runs after all writes, before manifest
+  finalisation. Belt-and-braces alongside the existing `cleanup_legacy_v1_2`
+  early sweep.
+- `canonical_inventory_strict: true` emitted in `install.manifest.json` (EIIS
+  v1.4 §3.7).
+- Fixture `.claude/agents/idg.md` added at `evals/fixtures/.claude/agents/`
+  for conformance checker I4 validation.
+
+### Compliance
+- `EIIS_VERSION` bumped to `1.4`.
+
+---
+
 ## [1.3.1] — 2026-05-26
 
 ### Fixed
