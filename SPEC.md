@@ -38,7 +38,7 @@ IDG emits no enumerated outbound envelopes in ECL v1.0. An optional `ACKNOWLEDGE
 
 ### Gate — Truthfulness (ECL extension)
 
-The CHT Gate's Truthfulness dimension includes a fourth check (see `skills/verification/SKILL.md`): if the source artefact arrived with an `*.envelope.json` sidecar, the chronicle's provenance block records the envelope's `message_id`, `thread_id`, `from`, `performative`, and `verify_pass` / `verify_fail` outcome. A `verify_fail` does not lower the Truthfulness score below 4 by itself; it is captured as `[DISPUTED]`.
+The CHT Gate's Truthfulness dimension includes a fourth check (see `skills/verification.md`): if the source artefact arrived with an `*.envelope.json` sidecar, the chronicle's provenance block records the envelope's `message_id`, `thread_id`, `from`, `performative`, and `verify_pass` / `verify_fail` outcome. A `verify_fail` does not lower the Truthfulness score below 4 by itself; it is captured as `[DISPUTED]`.
 
 ## IDG Cycle
 
@@ -112,8 +112,8 @@ Load skills on-demand. Do NOT load all skills upfront.
 
 | Trigger | Skill File |
 |---------|-----------|
-| Starting any document composition | `skills/composition/SKILL.md` |
-| Entering Gate phase or verification | `skills/verification/SKILL.md` |
+| Starting any document composition | `skills/composition.md` |
+| Entering Gate phase or verification | `skills/verification.md` |
 
 ## Template Loading
 
