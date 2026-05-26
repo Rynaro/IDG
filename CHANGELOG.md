@@ -7,6 +7,15 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.4.1] — 2026-05-26
+
+### Fixed
+- `SPEC.md`: corrected three stale prose references from the v1.3 subdir layout
+  (`skills/<skill>/SKILL.md`) to the v1.3-flattened flat layout (`skills/<skill>.md`).
+  Affected lines: skill-loading table (×2) and ECL Gate — Truthfulness prose reference.
+
+---
+
 ## [1.4.0] — 2026-05-26
 
 ### Changed
