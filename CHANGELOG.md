@@ -7,6 +7,16 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.3.1] — 2026-05-26
+
+### Fixed
+- `install.sh` now sweeps legacy v1.2-era artefacts on upgrade: removes stale
+  `<TARGET>/IDG.md`, `<TARGET>/SCRIBE.md` (defensive), and any
+  `<TARGET>/skills/{composition,verification}/` subdir trees.
+  Fresh installs are unaffected (guards short-circuit when files are absent).
+
+---
+
 ## [1.3.0] — 2026-05-25 — EIIS v1.3 layout normalization (SPEC.md + flat skills)
 
 ### Changed

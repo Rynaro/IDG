@@ -3,9 +3,15 @@ set -euo pipefail
 
 EIDOLON_NAME="idg"
 EIDOLON_SLUG="idg"
-EIDOLON_VERSION="1.3.0"
+EIDOLON_VERSION="1.3.1"
 METHODOLOGY="IDG"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# --- legacy cleanup arrays (v1.2-era artefacts) ---
+# Basenames removed from <TARGET>/ when found on disk.
+LEGACY_SPEC_FILES=("IDG.md" "SCRIBE.md")
+# Subdir names removed from <TARGET>/skills/ when found as directories.
+LEGACY_SKILL_DIRS=("composition" "verification")
 
 # --- ECL version ---
 ECL_VERSION_FILE="${SCRIPT_DIR}/ECL_VERSION"
@@ -130,6 +136,46 @@ sha256_file() {
   fi
 }
 
+# cleanup_legacy_v1_2 <target>
+#
+# Sweep legacy v1.2-era artefacts left behind by prior installs.
+# Called exactly once, early in the install sequence, BEFORE any new content
+# is written under <target>. Idempotent: no-op when no legacy file exists.
+#
+# Reads two top-of-file arrays:
+#   LEGACY_SPEC_FILES  — basenames to rm -f at "<target>/<basename>"
+#   LEGACY_SKILL_DIRS  — skill names to rm -rf at "<target>/skills/<name>"
+#
+# Both arrays are declared per-Eidolon and MAY be empty (in which case
+# the corresponding loop is a no-op). Never reads/writes outside <target>.
+cleanup_legacy_v1_2() {
+  local target="$1"
+  local legacy
+  local legacy_skill_dir
+
+  if [ -z "${target}" ] || [ ! -d "${target}" ]; then
+    return 0
+  fi
+
+  # Sweep legacy spec filenames (e.g. IDG.md, SCRIBE.md)
+  for legacy in "${LEGACY_SPEC_FILES[@]}"; do
+    if [ -n "${legacy}" ] && [ -f "${target}/${legacy}" ]; then
+      rm -f "${target}/${legacy}"
+      echo "  swept legacy spec file: ${target}/${legacy}" >&2
+    fi
+  done
+
+  # Sweep legacy subdir-style skills (e.g. skills/composition/SKILL.md)
+  for legacy_skill_dir in "${LEGACY_SKILL_DIRS[@]}"; do
+    if [ -n "${legacy_skill_dir}" ] && [ -d "${target}/skills/${legacy_skill_dir}" ]; then
+      rm -rf "${target}/skills/${legacy_skill_dir}"
+      echo "  swept legacy skill subdir: ${target}/skills/${legacy_skill_dir}" >&2
+    fi
+  done
+
+  return 0
+}
+
 # --- resolve spec source ---
 SRC_SPEC="${SCRIPT_DIR}/SPEC.md"
 if [[ ! -f "${SRC_SPEC}" ]]; then
@@ -223,6 +269,9 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
       "${TARGET}/skills" \
       "${TARGET}/templates" \
       "${TARGET}/schemas"
+
+    # Sweep legacy v1.2-era artefacts before writing new content.
+    cleanup_legacy_v1_2 "${TARGET}"
 
     # Copy agent files
     cp "${SCRIPT_DIR}/agent.md"                                   "${TARGET}/agent.md"
