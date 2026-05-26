@@ -3,13 +3,13 @@ set -euo pipefail
 
 EIDOLON_NAME="idg"
 EIDOLON_SLUG="idg"
-EIDOLON_VERSION="1.3.1"
+EIDOLON_VERSION="1.4.0"
 METHODOLOGY="IDG"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# --- legacy cleanup arrays (v1.2-era artefacts) ---
+# --- legacy cleanup arrays (v1.2/v1.3-era artefacts) ---
 # Basenames removed from <TARGET>/ when found on disk.
-LEGACY_SPEC_FILES=("IDG.md" "SCRIBE.md")
+LEGACY_SPEC_FILES=("IDG.md" "SCRIBE.md" "DESIGN-RATIONALE.md")
 # Subdir names removed from <TARGET>/skills/ when found as directories.
 LEGACY_SKILL_DIRS=("composition" "verification")
 
@@ -176,6 +176,49 @@ cleanup_legacy_v1_2() {
   return 0
 }
 
+# canonical_inventory_sweep <target>
+#
+# Remove every file under <target>/ that is not present in the in-memory
+# allow-set FILES_WRITTEN_PATHS. The allow-set is maintained by files_append()
+# during the install; each successful write appends its target-relative path.
+#
+# EIIS v1.4 §6.X — manifest-driven cleanup obligation.
+# Bash 3.2 compatible. Idempotent: re-running on a clean target is a no-op.
+canonical_inventory_sweep() {
+  local target="$1"
+  local file_rel
+  local found
+  local known
+
+  if [ -z "${target}" ] || [ ! -d "${target}" ]; then
+    return 0
+  fi
+
+  find "${target}" -type f -print0 | while IFS= read -r -d '' file; do
+    file_rel="${file#${target}/}"
+
+    found=0
+    for known in "${FILES_WRITTEN_PATHS[@]+"${FILES_WRITTEN_PATHS[@]}"}"; do
+      case "${known}" in
+        *"/${file_rel}"|"${file_rel}")
+          found=1
+          break
+          ;;
+      esac
+    done
+
+    if [ "${found}" -eq 0 ]; then
+      rm -f "${file}"
+      echo "  swept non-whitelisted file: ${file}" >&2
+    fi
+  done
+
+  # Remove any empty directories left after the sweep.
+  find "${target}" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+
+  return 0
+}
+
 # --- resolve spec source ---
 SRC_SPEC="${SCRIPT_DIR}/SPEC.md"
 if [[ ! -f "${SRC_SPEC}" ]]; then
@@ -245,7 +288,7 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     echo "[dry-run] Would write:"
     echo "  ${TARGET}/agent.md"
     echo "  ${TARGET}/SPEC.md"
-    echo "  ${TARGET}/DESIGN-RATIONALE.md"
+    echo "  ${TARGET}/ECL_VERSION"
     echo "  ${TARGET}/skills/composition.md"
     echo "  ${TARGET}/skills/verification.md"
     echo "  ${TARGET}/templates/session-chronicle.md"
@@ -276,7 +319,7 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     # Copy agent files
     cp "${SCRIPT_DIR}/agent.md"                                   "${TARGET}/agent.md"
     cp "${SRC_SPEC}"                                              "${TARGET}/SPEC.md"
-    cp "${SCRIPT_DIR}/DESIGN-RATIONALE.md"                        "${TARGET}/DESIGN-RATIONALE.md"
+    cp "${SCRIPT_DIR}/ECL_VERSION"                                "${TARGET}/ECL_VERSION"
     cp "${SCRIPT_DIR}/templates/session-chronicle.md"             "${TARGET}/templates/session-chronicle.md"
     cp "${SCRIPT_DIR}/templates/adr.md"                           "${TARGET}/templates/adr.md"
     cp "${SCRIPT_DIR}/templates/runbook.md"                       "${TARGET}/templates/runbook.md"
@@ -382,21 +425,15 @@ Cycle:     I (Intake) → D (Draft) → G (Gate)
 ---
 name: ${EIDOLON_NAME}
 description: "Documentation synthesis — structured markers, CHT verification, provenance-first."
-when_to_use: "After APIVR-Δ (or an equivalent implementation session) produces a session log, delta history, or completion report and you need it chronicled as an ADR, runbook, or change-narrative."
-tools: Read, Grep, Glob, Write
-methodology: ${METHODOLOGY}
-methodology_version: "${EIDOLON_VERSION%.*}"
-role: Scriber — documentation synthesis with provenance
-handoffs: []
+model: haiku
 ---
 
-${METHODOLOGY} runs the I→D→G cycle. Given session artifacts, it produces
-structured documentation (chronicle, ADR, runbook, change-narrative) with
-markers that verify provenance back to the source session.
+You are ${METHODOLOGY}. Read these two files in order at session start:
 
-See \`${TARGET_REL}/agent.md\` for P0 rules and
-\`${TARGET_REL}/SPEC.md\` for the full specification. Skills load on
-demand — see \`${TARGET_REL}/skills/\`.
+1. \`./.eidolons/${EIDOLON_SLUG}/agent.md\` — always-loaded P0 rules.
+2. \`./.eidolons/${EIDOLON_SLUG}/SPEC.md\` — deep on-demand methodology spec.
+
+Skills live at \`./.eidolons/${EIDOLON_SLUG}/skills/<skill>.md\` (load on demand).
 AGENT
       fi
     fi
@@ -485,13 +522,15 @@ if [[ "$DRY_RUN" != "true" ]]; then
   done
   hosts_json+="]"
 
-  # Build files_written and skills JSON arrays
+  # Build files_written and skills JSON arrays.
+  # FILES_WRITTEN_PATHS is an indexed array used by canonical_inventory_sweep.
+  FILES_WRITTEN_PATHS=()
   files_json="[]"
   skills_json="[]"
   if [[ "$MANIFEST_ONLY" != "true" && -f "${TARGET}/agent.md" ]]; then
     sha_agent=$(sha256_file "${TARGET}/agent.md")
     sha_spec=$(sha256_file "${TARGET}/SPEC.md")
-    sha_dr=$(sha256_file "${TARGET}/DESIGN-RATIONALE.md")
+    sha_ecl_ver=$(sha256_file "${TARGET}/ECL_VERSION")
     sha_comp=$(sha256_file "${TARGET}/skills/composition.md")
     sha_verif=$(sha256_file "${TARGET}/skills/verification.md")
     sha_chron=$(sha256_file "${TARGET}/templates/session-chronicle.md")
@@ -513,42 +552,87 @@ if [[ "$DRY_RUN" != "true" ]]; then
 
     files_entries=""
     files_append() {
+      local json_entry="$1"
+      local path_val="$2"
       if [[ -z "$files_entries" ]]; then
-        files_entries="    $1"
+        files_entries="    ${json_entry}"
       else
         files_entries="${files_entries},
-    $1"
+    ${json_entry}"
+      fi
+      # Populate the allow-set for canonical_inventory_sweep.
+      if [[ -n "${path_val}" ]]; then
+        FILES_WRITTEN_PATHS+=("${path_val}")
       fi
     }
-    files_append "{\"path\": \"agent.md\",                       \"sha256\": \"${sha_agent}\", \"role\": \"entry-point\", \"mode\": \"created\"}"
-    files_append "{\"path\": \"SPEC.md\",                        \"sha256\": \"${sha_spec}\",  \"role\": \"spec\",        \"mode\": \"created\"}"
-    files_append "{\"path\": \"DESIGN-RATIONALE.md\",            \"sha256\": \"${sha_dr}\",    \"role\": \"other\",       \"mode\": \"created\"}"
-    files_append "{\"path\": \"skills/composition.md\",          \"sha256\": \"${sha_comp}\",  \"role\": \"skill\",       \"mode\": \"created\"}"
-    files_append "{\"path\": \"skills/verification.md\",         \"sha256\": \"${sha_verif}\", \"role\": \"skill\",       \"mode\": \"created\"}"
+    files_append \
+      "{\"path\": \"agent.md\",                       \"sha256\": \"${sha_agent}\",   \"role\": \"agent-profile\", \"mode\": \"created\"}" \
+      "agent.md"
+    files_append \
+      "{\"path\": \"SPEC.md\",                        \"sha256\": \"${sha_spec}\",    \"role\": \"spec\",          \"mode\": \"created\"}" \
+      "SPEC.md"
+    files_append \
+      "{\"path\": \"ECL_VERSION\",                    \"sha256\": \"${sha_ecl_ver}\", \"role\": \"ecl-version\",   \"mode\": \"created\"}" \
+      "ECL_VERSION"
+    files_append \
+      "{\"path\": \"skills/composition.md\",          \"sha256\": \"${sha_comp}\",    \"role\": \"skill\",         \"mode\": \"created\"}" \
+      "skills/composition.md"
+    files_append \
+      "{\"path\": \"skills/verification.md\",         \"sha256\": \"${sha_verif}\",   \"role\": \"skill\",         \"mode\": \"created\"}" \
+      "skills/verification.md"
     if hosts_contains "claude-code"; then
-      files_append "{\"path\": \".claude/skills/${EIDOLON_SLUG}-composition/SKILL.md\",  \"sha256\": \"${sha_comp_vendor}\",  \"role\": \"skill\", \"mode\": \"created\"}"
-      files_append "{\"path\": \".claude/skills/${EIDOLON_SLUG}-verification/SKILL.md\", \"sha256\": \"${sha_verif_vendor}\", \"role\": \"skill\", \"mode\": \"created\"}"
+      files_append \
+        "{\"path\": \".claude/skills/${EIDOLON_SLUG}-composition/SKILL.md\",  \"sha256\": \"${sha_comp_vendor}\",  \"role\": \"skill\", \"mode\": \"created\"}" \
+        ""
+      files_append \
+        "{\"path\": \".claude/skills/${EIDOLON_SLUG}-verification/SKILL.md\", \"sha256\": \"${sha_verif_vendor}\", \"role\": \"skill\", \"mode\": \"created\"}" \
+        ""
     fi
-    files_append "{\"path\": \"templates/session-chronicle.md\", \"sha256\": \"${sha_chron}\", \"role\": \"template\",    \"mode\": \"created\"}"
-    files_append "{\"path\": \"templates/adr.md\",               \"sha256\": \"${sha_adr}\",   \"role\": \"template\",    \"mode\": \"created\"}"
-    files_append "{\"path\": \"templates/runbook.md\",           \"sha256\": \"${sha_run}\",   \"role\": \"template\",    \"mode\": \"created\"}"
-    files_append "{\"path\": \"templates/change-narrative.md\",  \"sha256\": \"${sha_cn}\",    \"role\": \"template\",    \"mode\": \"created\"}"
-    files_append "{\"path\": \"schemas/ecl-envelope.v1.json\",                    \"sha256\": \"${sha_ecl_env}\",   \"role\": \"other\", \"mode\": \"created\"}"
-    files_append "{\"path\": \"schemas/ecl-base-profile.v1.json\",                \"sha256\": \"${sha_ecl_base}\",  \"role\": \"other\", \"mode\": \"created\"}"
-    files_append "{\"path\": \"schemas/apivr-completion-report-profile.v1.json\", \"sha256\": \"${sha_ecl_apivr}\", \"role\": \"other\", \"mode\": \"created\"}"
-    files_append "{\"path\": \"schemas/root-cause-report-profile.v1.json\",       \"sha256\": \"${sha_ecl_rcr}\",   \"role\": \"other\", \"mode\": \"created\"}"
+    files_append \
+      "{\"path\": \"templates/session-chronicle.md\", \"sha256\": \"${sha_chron}\",   \"role\": \"template\",      \"mode\": \"created\"}" \
+      "templates/session-chronicle.md"
+    files_append \
+      "{\"path\": \"templates/adr.md\",               \"sha256\": \"${sha_adr}\",     \"role\": \"template\",      \"mode\": \"created\"}" \
+      "templates/adr.md"
+    files_append \
+      "{\"path\": \"templates/runbook.md\",            \"sha256\": \"${sha_run}\",    \"role\": \"template\",      \"mode\": \"created\"}" \
+      "templates/runbook.md"
+    files_append \
+      "{\"path\": \"templates/change-narrative.md\",  \"sha256\": \"${sha_cn}\",      \"role\": \"template\",      \"mode\": \"created\"}" \
+      "templates/change-narrative.md"
+    files_append \
+      "{\"path\": \"schemas/ecl-envelope.v1.json\",                    \"sha256\": \"${sha_ecl_env}\",   \"role\": \"other\", \"mode\": \"created\"}" \
+      "schemas/ecl-envelope.v1.json"
+    files_append \
+      "{\"path\": \"schemas/ecl-base-profile.v1.json\",                \"sha256\": \"${sha_ecl_base}\",  \"role\": \"other\", \"mode\": \"created\"}" \
+      "schemas/ecl-base-profile.v1.json"
+    files_append \
+      "{\"path\": \"schemas/apivr-completion-report-profile.v1.json\", \"sha256\": \"${sha_ecl_apivr}\", \"role\": \"other\", \"mode\": \"created\"}" \
+      "schemas/apivr-completion-report-profile.v1.json"
+    files_append \
+      "{\"path\": \"schemas/root-cause-report-profile.v1.json\",       \"sha256\": \"${sha_ecl_rcr}\",   \"role\": \"other\", \"mode\": \"created\"}" \
+      "schemas/root-cause-report-profile.v1.json"
 
     # Codex artefacts (EIIS v1.1 §4.5.5).
     if hosts_contains "codex"; then
       if [[ -f ".codex/agents/${EIDOLON_NAME}.md" ]]; then
         sha_codex=$(sha256_file ".codex/agents/${EIDOLON_NAME}.md")
-        files_append "{\"path\": \".codex/agents/${EIDOLON_NAME}.md\", \"sha256\": \"${sha_codex}\", \"role\": \"dispatch\", \"mode\": \"created\"}"
+        files_append \
+          "{\"path\": \".codex/agents/${EIDOLON_NAME}.md\", \"sha256\": \"${sha_codex}\", \"role\": \"dispatch\", \"mode\": \"created\"}" \
+          ""
       fi
       if [[ -f "AGENTS.md" ]]; then
         sha_agents=$(sha256_file "AGENTS.md")
-        files_append "{\"path\": \"AGENTS.md\", \"sha256\": \"${sha_agents}\", \"role\": \"dispatch\"}"
+        files_append \
+          "{\"path\": \"AGENTS.md\", \"sha256\": \"${sha_agents}\", \"role\": \"dispatch\"}" \
+          ""
       fi
     fi
+
+    # EIIS v1.4 §6.X — canonical inventory sweep. Remove any non-whitelisted
+    # file from <target>/ that is not in the current files_written[] set.
+    # Belt-and-braces: runs AFTER all writes, BEFORE manifest finalisation.
+    canonical_inventory_sweep "${TARGET}"
 
     files_json="[
 ${files_entries}
@@ -578,6 +662,7 @@ ${files_entries}
   "installed_at": "${INSTALLED_AT}",
   "target": "${TARGET}",
   "hosts_wired": ${hosts_json},
+  "canonical_inventory_strict": true,
   "spec_file": ".eidolons/${EIDOLON_SLUG}/SPEC.md",
   "skills": ${skills_json},
   "files_written": ${files_json},
