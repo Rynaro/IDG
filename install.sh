@@ -3,7 +3,7 @@ set -euo pipefail
 
 EIDOLON_NAME="idg"
 EIDOLON_SLUG="idg"
-EIDOLON_VERSION="1.4.1"
+EIDOLON_VERSION="1.4.2"
 METHODOLOGY="IDG"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

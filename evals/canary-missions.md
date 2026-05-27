@@ -1,6 +1,49 @@
-# Scribe — Canary Missions
+# Canary Missions — IDG (Scribe)
 
-Smoke tests for verifying a Scribe install. Run after `install.sh` to confirm the agent is wired correctly.
+> v1.13.0 DSL-format missions for `eidolons canary idg`. Legacy free-form
+> missions preserved under "Legacy mission catalog (pre-DSL)" below.
+
+---
+
+## Mission: smoke-default
+
+### Prompt
+
+Using the IDG (Scribe) methodology, synthesize an Architecture Decision Record from the following context:
+
+> **Decision:** The team chose PostgreSQL over MySQL.
+> **Reason:** PostgreSQL's JSONB type was required for flexible schema storage without a separate document store.
+> **Rejected alternative:** MySQL — no native JSONB; the JSON column type stores plain text only.
+> **Audience:** Backend engineers on the team.
+
+Walk the I → D → G cycle: Intake (classify type, validate context, load template), Draft (produce the ADR with structural markers), Gate (CHT scoring + revision pass if any dimension scores below 4). Emit the final ADR with a provenance block listing the document type, source artefacts, CHT scores per dimension, and an explicit gap assessment.
+
+### Expected output shape
+
+A response that walks the three phases as headings, then delivers the ADR. The ADR contains a `[DECISION]` marker recording what / why / rejected alternative. The Gate section scores Completeness, Helpfulness, and Truthfulness on a 1-5 scale. The provenance block at the end of the document records the document type (`adr`), source artefacts, CHT scores per dimension, and whether a revision pass was needed. No facts are invented (no team names, no dates, no rationale not present in the prompt).
+
+### Validation criteria
+
+- MUST contain heading: `## Intake`
+- MUST contain heading: `## Draft`
+- MUST contain heading: `## Gate`
+- MUST contain phrase: `\[DECISION\]`
+- MUST contain phrase: `provenance`
+- MUST contain phrase: `Completeness`
+- MUST contain phrase: `Helpfulness`
+- MUST contain phrase: `Truthfulness`
+- SHOULD contain phrase: `PostgreSQL`
+- SHOULD contain phrase: `JSONB`
+- SHOULD have token count between 700 and 2500
+
+---
+
+## Legacy mission catalog (pre-DSL)
+
+> The original two free-form missions ("ADR from Minimal Context",
+> "Insufficient Context Handling") are preserved below as historical
+> reference. The v1.13.0 validator parses only the `## Mission: <id>`
+> blocks above.
 
 ---
 

@@ -7,6 +7,13 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.4.2] — 2026-05-27
+
+### Changed
+- Patch: migrate evals/canary-missions.md to nexus v1.13.0 DSL format (smoke-default mission). Legacy free-form catalog preserved.
+
+---
+
 ## [1.4.1] — 2026-05-26
 
 ### Fixed
