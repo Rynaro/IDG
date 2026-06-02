@@ -122,4 +122,53 @@ Use the most specific identifier available:
 
 ---
 
+## Memory Ingest (Phase G — after DELIVER)
+
+Once the Gate decision is **DELIVER** (or DELIVER-with-flags after revision), persist
+the document handoff to CRYSTALIUM.
+
+### Ingest
+
+If the document was handed off with an ECL sidecar envelope (`*.envelope.json`),
+ingest via:
+
+```
+mcp__crystalium__ingest(
+  envelope = <the validated *.envelope.json contents>,
+  payload  = <delivered document contents>
+)
+```
+
+This records the document at T1 (`from.eidolon=idg` drives tier derivation).
+
+If no ECL sidecar is present, commit an episodic note directly:
+
+```
+mcp__crystalium__commit(
+  layer      = "episodic",
+  payload    = <document type + CHT scores + key decisions/gaps summary>,
+  provenance = { author_agent: "idg", document_type: <type> }
+)
+```
+
+`author_agent` MUST be `"idg"` on every direct commit.
+
+### Session end
+
+After ingest (or after delivery if CRYSTALIUM is absent), call:
+
+```
+mcp__crystalium__session_end()
+```
+
+This triggers Dream consolidation asynchronously. Call it once per IDG dispatch
+completion. Dream promotes corroborated episodic entries (terminology conventions,
+structural patterns) to the semantic layer — improving future recall quality.
+
+**Graceful skip:** if `mcp__crystalium__*` tools are unavailable (CRYSTALIUM not
+installed), skip ingest and session_end and mark the Gate phase complete normally.
+Never hard-fail on absent CRYSTALIUM tools. IDG is EIIS-standalone-conformant.
+
+---
+
 *Scribe v1.2.0 — Verification Skill*

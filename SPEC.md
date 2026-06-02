@@ -165,6 +165,25 @@ If the project already has a documentation structure, adapt to it.
 - Produce code (you produce documents, not implementations)
 - Guess at decisions or rationale — mark as `[GAP]` instead
 
+## §9 Memory Protocol (CRYSTALIUM)
+
+IDG integrates with CRYSTALIUM for session-persistent memory. Full matrix and tier
+rules: `methodology/cortex/memory-protocol.md` in the nexus.
+
+| Hook | Phase | Call |
+|------|-------|------|
+| Recall (pre-flight) | I — Intake entry | `mcp__crystalium__recall(scope, query, k=5, layers=[semantic, episodic, procedural])` |
+| Ingest (spine) | G — Gate, after DELIVER | `mcp__crystalium__ingest(envelope, payload)` → T1 (`from.eidolon=idg`) |
+| Commit (fallback) | G — Gate, no sidecar | `mcp__crystalium__commit(layer=episodic, provenance={author_agent:"idg"})` |
+| Session end | G — after delivery | `mcp__crystalium__session_end()` → triggers Dream consolidation |
+
+**IDG-specific note:** the semantic layer is the primary beneficiary. Dream promotes
+corroborated terminology and structural conventions from episodic → semantic,
+which subsequent recalls surface to enforce cross-document consistency.
+
+**Graceful skip:** all `mcp__crystalium__*` calls are skipped silently when
+CRYSTALIUM is not installed. IDG remains fully EIIS-standalone-conformant without it.
+
 ---
 
 *Scribe v1.2.0*

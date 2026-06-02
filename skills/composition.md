@@ -4,6 +4,30 @@ Loaded during the Draft phase. Governs how the Scribe transforms context into st
 
 ---
 
+## Memory Recall (Phase I — intake entry)
+
+At the start of Phase I, before classifying the source artefact, execute:
+
+```
+mcp__crystalium__recall(
+  scope    = { project: <cwd-project>, agent_class_visibility: "idg" },
+  query    = <document type + source artifact summary + objective>,
+  k        = 5,
+  layers   = ["semantic", "episodic", "procedural"]
+)
+```
+
+Fold any relevant hits (prior terminology conventions, document patterns, structural
+decisions for this project) into intake context before building the document skeleton.
+The **semantic** layer is especially valuable for IDG: promoted conventions from past
+chronicles sharpen terminology consistency across documents.
+
+**Graceful skip:** if `mcp__crystalium__*` tools are unavailable (CRYSTALIUM not
+installed), proceed without memory — never hard-fail. IDG is EIIS-standalone-
+conformant and works without CRYSTALIUM.
+
+---
+
 ## Envelope-Aware Intake (ECL v1.0)
 
 When classifying a source artefact during the **I — Intake** phase, check whether the artefact arrived with an ECL sidecar envelope. The four steps below are always executed in order when any `*.envelope.json` file is present; the overall verification is **warn-only** — IDG always produces the document.

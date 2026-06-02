@@ -7,6 +7,35 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.5.0] — 2026-06-02
+
+### Added
+
+- **Memory protocol (CRYSTALIUM):** embed the recall → ingest → session_end pipeline
+  into the IDG methodology per the nexus campaign (`2026-06-01-crystalium-per-eidolon`).
+  - `agent.md`: Memory pre-flight stanza — `mcp__crystalium__recall` at Phase I intake
+    (k=5, layers=semantic+episodic+procedural); graceful-skip contract; cross-refs to
+    `skills/composition.md` and `SPEC.md §9`.
+  - `skills/composition.md`: Memory Recall section at Phase I entry — recall call with
+    IDG-specific note on semantic layer priority for terminology conventions.
+  - `skills/verification.md`: Memory Ingest section at Phase G post-DELIVER — ingest
+    via ECL envelope when present, episodic commit fallback when absent; session_end;
+    graceful-skip contract. `author_agent: "idg"` on every direct commit.
+  - `SPEC.md §9`: "Memory Protocol (CRYSTALIUM)" section — concise hook table + pointer
+    to cortex deep table; IDG semantic-layer rationale; graceful-skip guarantee.
+  - `evals/canary-missions.md`: `memory-round-trip` DSL mission — verifies recall at
+    intake, ingest/session_end at delivery, graceful-skip when CRYSTALIUM absent.
+- `install.sh`: `EIDOLON_VERSION` bumped `1.4.2` → `1.5.0`.
+
+### Notes
+
+- ECL_VERSION (2.0) and EIIS_VERSION (1.4) are unchanged — this is a methodology
+  addition, not a protocol or install-layout change.
+- `mcp__crystalium__*` calls are MCP tool invocations, not shell/Bash commands —
+  IDG's no-Bash constraint is unaffected.
+
+---
+
 ## [1.4.2] — 2026-05-27
 
 ### Changed

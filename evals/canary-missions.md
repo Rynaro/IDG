@@ -38,6 +38,47 @@ A response that walks the three phases as headings, then delivers the ADR. The A
 
 ---
 
+## Mission: memory-round-trip
+
+### Prompt
+
+Using the IDG (Scribe) methodology with CRYSTALIUM memory tools available, synthesize
+a session chronicle from the following context:
+
+> **Session summary:** APIVR-Δ implemented a Redis-backed session cache to replace
+> the in-memory store. Key decisions: Redis chosen for its sorted-set support;
+> Memcached rejected (no sorted sets); TTL set to 3600s. One `[ACTION]` remains:
+> update Terraform modules to provision the Redis cluster.
+> **Source artefacts:** `apivr-completion-report.md` (no envelope present).
+> **Audience:** Backend engineers on the team.
+
+Walk the I → D → G cycle. At the start of Phase I, recall prior context via
+`mcp__crystalium__recall(scope={project, agent_class_visibility:"idg"}, query="session chronicle Redis cache decision", k=5, layers=[semantic,episodic,procedural])`. After the Gate DELIVER decision, persist the document via `mcp__crystalium__commit(layer=episodic, provenance={author_agent:"idg", document_type:"session-chronicle"})` and call `mcp__crystalium__session_end()`. If CRYSTALIUM tools are unavailable, proceed without memory and note the skip.
+
+### Expected output shape
+
+A response that walks the three phases as headings. Phase I includes a memory recall
+call (or a graceful-skip note if CRYSTALIUM is absent). Phase G ends with a DELIVER
+decision followed by a memory commit + session_end call (or skip note). The delivered
+chronicle contains a `[DECISION]` marker and at least one `[ACTION]` item. The
+provenance block records `author_agent: idg`.
+
+### Validation criteria
+
+- MUST contain heading: `## Intake`
+- MUST contain heading: `## Draft`
+- MUST contain heading: `## Gate`
+- MUST contain phrase: `mcp__crystalium__recall` OR phrase: `CRYSTALIUM`
+- MUST contain phrase: `mcp__crystalium__session_end` OR phrase: `graceful` OR phrase: `skip`
+- MUST contain phrase: `author_agent`
+- MUST contain phrase: `\[DECISION\]`
+- MUST contain phrase: `\[ACTION\]`
+- MUST contain phrase: `provenance`
+- SHOULD contain phrase: `Redis`
+- SHOULD have token count between 800 and 3000
+
+---
+
 ## Legacy mission catalog (pre-DSL)
 
 > The original two free-form missions ("ADR from Minimal Context",
