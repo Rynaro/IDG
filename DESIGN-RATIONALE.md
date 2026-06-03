@@ -102,6 +102,46 @@ This thesis determines every design boundary. The research literature (DocAgent,
 
 ---
 
+### 10. Gated Parallel Section Synthesis (G5), Not Make-It-Default
+
+**Research input**: DocAgent (arXiv 2504.08725) topological dependency ordering;
+clean-context per-section isolation to prevent trajectory cross-contamination (R1-02);
+bounded fan-out width to cap coordination cost (R1-03, R4-08); selection-not-averaging
+aggregation for open-ended prose (R3-02, R3-06); structured-note memory-as-files
+provenance merged by the coordinator (R4-10).
+
+**Decision**: Operationalize the cortex's G5 form as a runnable five-step mode
+(`skills/section-parallel.md`) — dependency-layering → ≤5 clean-context per-section
+subagents per layer → per-section CHT mini-gate (one revision max) → topological-order
+parent assembly by selection → one coherence pass + provenance merge. Keep it
+**TRANCE-gated and never the default**: it fires only for documents with ≥6 independent
+sections routed at the TRANCE tier; below that threshold it is an explicit no-op.
+
+**Rationale**: Topological section ordering already shipped as a sequential rule
+(decision 6) and the matrix already named IDG's parallel form G5, but the parallelism was
+never operationalized. The five-step mode closes that gap with the same bounded-reflection
+discipline as the rest of IDG: clean-context isolation (R1-02) keeps each section's draft
+from contaminating its siblings; the ≤5 per-layer fan-out cap (R1-03, R4-08) bounds
+coordination cost; selection-not-averaging (R3-02, R3-06) avoids the prose-blending
+failure mode that averaging causes in open-ended text; structured-note provenance merge
+(R4-10) preserves IDG's provenance-first differentiator across assembly. Because IDG never
+writes source files, fan-out is read-only — no worktree, no write-conflict surface.
+
+**Rejected alternative — make G5 the default.** Running parallel fan-out on every
+document would multiply subagent cost roughly an order of magnitude (~15× for a six-layer
+document) for documents that are usually small and sequential-friendly, and it would
+contradict the cortex mandate that **standard tier is the default and TRANCE is gated,
+never default**. The threshold gate (≥6 independent sections + TRANCE) repays the
+coordination overhead only where it is actually earned.
+
+**Honest scope (nexus-level caps).** This is a methodology-layer operationalization, not
+a runtime: IDG still has no executable edit-run-test loop and no Bash by design, so
+methodology alone cannot mechanically enforce the fan-out — that enforcement lives in the
+cortex/host. There is no doc-quality benchmark (no LOCOMO/GAIA equivalent) to prove the
+mode raises output quality; the score delta is an unbenchmarked, M-confidence estimate.
+
+---
+
 ## What Was Explicitly Excluded (and Why)
 
 | Excluded | Reason |
@@ -135,7 +175,10 @@ This is well under the ~4,350 token working set of comparable agents and signifi
 
 | Source | Contribution to Scribe Design |
 |--------|-------------------------------|
-| DocAgent (arXiv 2504.08725, Apr 2025) | CHT framework, topological ordering, ablation evidence |
+| DocAgent (arXiv 2504.08725, Apr 2025) | CHT framework, topological ordering, ablation evidence, G5 layered fan-out |
+| Multi-agent isolation + bounded fan-out (R1-02, R1-03, R4-08) | Clean-context per-section subagents; ≤5 per-layer width cap |
+| Selection-not-averaging aggregation (R3-02, R3-06) | Topological-order parent assembly; conflicts to `[DISPUTED]` |
+| Structured-note memory-as-files (R4-10) | Per-section provenance merged by the coordinator |
 | ReflAct (EMNLP 2025) | State-grounding loop concept (simplified to single gate pass) |
 | CorrectBench (arXiv 2510.16062, 2025) | Evidence for bounding self-correction loops |
 | Anthropic Context Engineering (Sept 2025) | Context budget discipline, progressive disclosure |
@@ -148,4 +191,4 @@ This is well under the ~4,350 token working set of comparable agents and signifi
 
 ---
 
-*Scribe v1.2.0 — Design Rationale*
+*Scribe v1.6.0 — Design Rationale*

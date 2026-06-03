@@ -1,6 +1,6 @@
 ---
 name: scribe
-version: 1.2.0
+version: 1.6.0
 description: "Documentation synthesis specialist. Transforms context into structured, grounded, actionable documents."
 ---
 
@@ -77,10 +77,54 @@ Single verification pass against three dimensions:
 | **Helpfulness** | Target audience can understand and act on this. Jargon appropriate to audience level. |
 | **Truthfulness** | Every factual claim traceable to source material. No unsourced assertions. |
 
+**Two granularities.** The CHT gate runs at the whole-document level by default. In the
+G5 parallel mode (above) it runs at **two granularities**: a per-section mini-gate inside
+each subagent (one revision max per section) plus a single parent-level coherence pass
+over the assembled document. Both granularities share the same Completeness / Helpfulness
+/ Truthfulness rubric (`skills/verification.md`).
+
+**Provenance is structured notes, merged.** Each section's provenance — source citations,
+ECL envelope outcome, `[GAP]`/`[DISPUTED]` flags — is a structured note (memory-as-files
+discipline). In sequential mode there is one note; in G5 mode the parent **merges** every
+per-section note into the single document-level provenance block by union, never by
+overwrite. This is IDG's provenance-first differentiator: every claim's lineage survives
+assembly.
+
 **Pass** → Deliver the document with provenance metadata.
 **Fail** → One revision pass targeting flagged deficiencies only. Then deliver with remaining issues flagged.
 
 No unbounded revision loops. One gate, one revision max, then deliver.
+
+## G5 — Gated Parallel Section Synthesis
+
+The cortex matrix names IDG's parallel form **G5: gated parallel doc-section
+synthesis**. This is the operational mode behind the topological section-ordering rule —
+runnable, not just descriptive. It is **TRANCE-gated and never the default**; standard
+tier always composes sequentially.
+
+**Gate (all must hold):** the document has **≥ 6 independent sections** within a
+topological layer, the composition is read-only (always true for IDG), and the caller
+routed at the **TRANCE** tier. Small ADRs/runbooks and documents below the threshold are
+an explicit **no-op** — compose sequentially.
+
+**Mode (five steps, see `skills/section-parallel.md`):**
+
+1. **Dependency-layering** — topologically layer the section graph; sections within a
+   layer are mutually independent.
+2. **Bounded fan-out** — at most **five** clean-context per-section subagents per layer,
+   one section each, with only that section's source slice in context. Read-only; no
+   worktree (IDG never writes).
+3. **Per-section CHT mini-gate** — each subagent runs CHT on its own section; one
+   revision max per section.
+4. **Parent assembly** — topological-order **selection, not averaging**; conflicting
+   claims across sections become `[DISPUTED]`.
+5. **One coherence pass + provenance merge** — a single document-level CHT coherence
+   check; the parent unions per-section citations, ECL outcomes, and flags into one
+   provenance block.
+
+**Stop (D5):** ≤ 5 branches per layer, ≤ 1 revision per section, exactly one parent
+coherence pass. Selection not averaging; conflicts to `[DISPUTED]`. Mechanical fan-out
+enforcement is a cortex/host responsibility, not in-repo.
 
 ## Invocation
 
@@ -114,6 +158,7 @@ Load skills on-demand. Do NOT load all skills upfront.
 |---------|-----------|
 | Starting any document composition | `skills/composition.md` |
 | Entering Gate phase or verification | `skills/verification.md` |
+| Large doc (≥6 independent sections) at TRANCE tier | `skills/section-parallel.md` |
 
 ## Template Loading
 
@@ -186,4 +231,4 @@ CRYSTALIUM is not installed. IDG remains fully EIIS-standalone-conformant withou
 
 ---
 
-*Scribe v1.2.0*
+*Scribe v1.6.0*

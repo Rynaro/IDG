@@ -7,6 +7,48 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.6.0] — 2026-06-03
+
+### Added
+
+- **G5 — Gated Parallel Section Synthesis (methodology):** operationalize the cortex
+  matrix's G5 form for IDG into a runnable, TRANCE-gated, never-default mode. The
+  topological section-ordering rule was previously sequential-only and the matrix named
+  the form without operationalizing the parallelism; this closes that gap.
+  - `skills/section-parallel.md` (new flat skill, ~800 tokens, IDG plain-markdown
+    convention): five-step mode — dependency-layering → ≤5 clean-context per-section
+    subagents per layer → per-section CHT mini-gate (one revision max) → topological-order
+    parent assembly by **selection, not averaging** (conflicts → `[DISPUTED]`) → one
+    document-level coherence pass + provenance merge. Gate: ≥6 independent sections at
+    TRANCE tier; small docs are an explicit no-op. Read-only fan-out — no worktree, since
+    IDG never writes.
+  - `SPEC.md`: new "G5 — Gated Parallel Section Synthesis" section; CHT extended to **two
+    granularities** (per-section mini-gate + parent coherence pass); structured-note
+    provenance-merge clause; skill-loading table row for `skills/section-parallel.md`.
+  - `DESIGN-RATIONALE.md`: decision 10 maps R1-02/R1-03/R4-08/R3-02/R3-06/R4-10/DocAgent
+    to the gated-parallel design and records the rejected **make-G5-default** alternative
+    (~15× cost; cortex mandates standard-default).
+  - `evals/canary-missions.md`: `parallel-section-synthesis` DSL mission — a six-section
+    chronicle asserting layering, bounded fan-out, per-section gate, selection-not-
+    averaging assembly, coherence pass, and merged provenance.
+  - `agent.md`: one Skill-Loading row routing large TRANCE-tier docs to the new skill
+    (agent.md stays well under the 1000-token P0 budget).
+- `install.sh`: `section-parallel` skill registered at every enumeration site (dry-run
+  echo, `wire_skill` loop, source + vendor sha, `files_written[]` source + vendor
+  entries, `skills[]` builders in both host branches); `EIDOLON_VERSION` `1.5.0` → `1.6.0`.
+
+### Notes
+
+- ECL_VERSION (2.0) and EIIS_VERSION (1.4) are unchanged — methodology addition only,
+  no protocol or install-layout change.
+- The parallel mode is **TRANCE-gated and never the default**; standard tier composes
+  sequentially.
+- Nexus-level caps remain: no executable runtime / edit-run-test loop, no Bash by design,
+  no doc-quality benchmark, and mechanical fan-out enforcement lives in the cortex/host.
+  The score delta is an unbenchmarked, methodology-layer estimate.
+
+---
+
 ## [1.5.0] — 2026-06-02
 
 ### Added
