@@ -98,4 +98,4 @@ See [DESIGN-RATIONALE.md](DESIGN-RATIONALE.md) for the full mapping of research 
 
 ---
 
-*Scribe v1.1.0*
+*Scribe v1.6.0*

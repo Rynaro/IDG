@@ -116,4 +116,4 @@ Use for operational procedures — deployments, incident response, maintenance t
 
 ---
 
-*Scribe v1.2.0 — Runbook Template*
+*Scribe v1.6.0 — Runbook Template*
