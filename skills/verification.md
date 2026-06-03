@@ -171,4 +171,4 @@ Never hard-fail on absent CRYSTALIUM tools. IDG is EIIS-standalone-conformant.
 
 ---
 
-*Scribe v1.2.0 — Verification Skill*
+*Scribe v1.6.0 — Verification Skill*

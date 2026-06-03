@@ -79,6 +79,54 @@ provenance block records `author_agent: idg`.
 
 ---
 
+## Mission: parallel-section-synthesis
+
+### Prompt
+
+Using the IDG (Scribe) methodology at the TRANCE tier, synthesize a session chronicle
+from the following context. The document has six independent sections, so apply the G5
+gated parallel section-synthesis mode (`skills/section-parallel.md`).
+
+> **Document:** post-incident session chronicle with six independent sections —
+> 1. Incident summary, 2. Timeline, 3. Root cause, 4. Remediation, 5. Customer impact,
+> 6. Follow-up actions. Sections 1–5 are mutually independent; section 6 depends on 3 and 4.
+> **Source artefacts:** `vigil-root-cause-report.md`, `apivr-completion-report.md`,
+> `incident-timeline.md` (no envelopes present).
+> **Audience:** Engineering leadership.
+
+Walk the cycle. In Phase D, because the gate fires (≥6 independent sections at TRANCE),
+do not draft sequentially: (1) dependency-layer the sections; (2) fan out at most five
+clean-context per-section subagents per layer, read-only, no worktree; (3) run a
+per-section CHT mini-gate (one revision max per section); (4) assemble in topological
+order by selection, not averaging — conflicting claims become `[DISPUTED]`; (5) run one
+document-level coherence pass and merge every per-section provenance note into a single
+provenance block.
+
+### Expected output shape
+
+A response that walks the three phases as headings. Phase D shows the dependency-layering
+(layer 0 = independent sections, a later layer containing section 6), states the bounded
+fan-out (≤5 per layer), and notes the read-only / no-worktree posture. Each section is
+drafted once and carries its own per-section CHT note. The Gate section shows the single
+document-level coherence pass. The final chronicle has a `[DECISION]` marker and a single
+merged provenance block unioning all per-section source citations. No facts are invented.
+
+### Validation criteria
+
+- MUST contain heading: `## Intake`
+- MUST contain heading: `## Draft`
+- MUST contain heading: `## Gate`
+- MUST contain phrase: `topological` OR phrase: `layer`
+- MUST contain phrase: `selection` OR phrase: `not averaging`
+- MUST contain phrase: `coherence`
+- MUST contain phrase: `provenance`
+- MUST contain phrase: `\[DECISION\]`
+- MUST contain phrase: `Completeness`
+- SHOULD contain phrase: `read-only` OR phrase: `no worktree`
+- SHOULD have token count between 900 and 3500
+
+---
+
 ## Legacy mission catalog (pre-DSL)
 
 > The original two free-form missions ("ADR from Minimal Context",

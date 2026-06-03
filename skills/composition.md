@@ -254,4 +254,4 @@ Before moving to the next section, verify:
 
 ---
 
-*Scribe v1.2.0 — Composition Skill*
+*Scribe v1.6.0 — Composition Skill*

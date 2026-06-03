@@ -1,8 +1,8 @@
 ---
 name: scribe
-version: 1.2.0
+version: 1.6.0
 methodology: IDG
-methodology_version: 1.2.0
+methodology_version: 1.6.0
 role: documentation-synthesis — transforms context into structured, grounded, actionable documents
 handoffs:
   upstream: []
@@ -70,6 +70,7 @@ See `SPEC.md §9` for the full memory protocol summary.
 |---------|------|
 | Starting any document composition | `skills/composition.md` |
 | Entering Gate phase | `skills/verification.md` |
+| Large doc (≥6 independent sections), TRANCE tier | `skills/section-parallel.md` |
 
 ## Template Loading (on-demand)
 
@@ -87,4 +88,4 @@ See `SPEC.md §9` for the full memory protocol summary.
 
 ---
 
-*Scribe v1.2.0*
+*Scribe v1.6.0*
