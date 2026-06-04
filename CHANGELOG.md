@@ -7,6 +7,29 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Blocking symmetric verify-incoming gate (ECL §6.2.2):** replaces the previous
+  warn-only opt-in posture with a mandatory blocking receiver gate. IDG now REFUSES to
+  process any inbound ECL artefact whose integrity has not been confirmed by a prior
+  `verify_pass` trace event written by the orchestrator (`eidolons verify-envelope
+  --block`). The gate is symmetric — all six Eidolons ship identical semantics; only
+  the inbound-edge table varies per Eidolon.
+  - `skills/verify-incoming.md` (new flat skill, IDG plain-markdown convention):
+    orchestrator pre-verify model, Read-only trace check, CRYSTALIUM recall/ingest
+    integration, inbound-edge table (atlas/spectra/apivr/vigil), REFUSE failure mode
+    with six failure codes, and trace-event JSON schema.
+  - `install.sh`: `verify-incoming` skill registered at all enumeration sites — dry-run
+    echo, `wire_skill` loop, source sha, vendor sha, `files_written[]` source + vendor
+    entries, `skills[]` builders in both host branches.
+  - `tests/verify-incoming.bats` + `tests/helpers.bash`: new bats suite (14 tests,
+    0 failures) covering skill posture assertions, install exit 0, manifest recording,
+    and vendor copy.
+
+---
+
 ## [1.6.0] — 2026-06-03
 
 ### Added
