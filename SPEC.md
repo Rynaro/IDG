@@ -1,6 +1,6 @@
 ---
 name: scribe
-version: 1.8.0
+version: 1.8.1
 description: "Documentation synthesis specialist. Transforms context into structured, grounded, actionable documents."
 ---
 

@@ -3,7 +3,7 @@ set -euo pipefail
 
 EIDOLON_NAME="idg"
 EIDOLON_SLUG="idg"
-EIDOLON_VERSION="1.8.0"
+EIDOLON_VERSION="1.8.1"
 METHODOLOGY="IDG"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -428,6 +428,7 @@ Cycle:     I (Intake) → D (Draft) → G (Gate)
 name: ${EIDOLON_NAME}
 description: "Documentation synthesis — structured markers, CHT verification, provenance-first."
 model: haiku
+tools: Read, Edit, Write, Grep, Glob
 ---
 
 You are ${METHODOLOGY}. Read these two files in order at session start:
