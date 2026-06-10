@@ -7,7 +7,33 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased]
+## [1.8.0] — 2026-06-10
+
+### Changed
+
+- **Version-stamp hygiene + canonical skill frontmatter:** bring all in-tree stamps to
+  1.8.0; add canonical EIIS-compliant frontmatter to all four skills (previously surfaced
+  with empty descriptions in hosts). Covers `install.sh`, `agent.md`/`AGENTS.md`
+  frontmatter, `SPEC.md` header, `README.md`, `DESIGN-RATIONALE.md`, template provenance
+  blocks, `skills/` footers, `hosts/claude-code.md` example, and
+  `evals/fixtures/install.manifest.json`. ECL items left verbatim (ecosystem-coordinated).
+  - `skills/composition.md`, `skills/verification.md`, `skills/section-parallel.md`,
+    `skills/verify-incoming.md`: add `name`, `description`, and `metadata:` frontmatter
+    per campaign spec D2. Descriptions now populate copilot/cursor wiring via
+    `extract_fm_field` in `install.sh` (previously empty for all IDG skills).
+  - `skills/composition.md`: GAP-template version-specific phrase changed to
+    version-agnostic reference.
+  - `skills/verify-incoming.md`: trace event `"to":"idg@1.1"` → `"to":"idg@<version>"`
+    placeholder (×2).
+  - `templates/`: `Scribe version: 1.0.0` provenance placeholder → `<version>` in all
+    four templates (session-chronicle, adr, runbook, change-narrative).
+  - `evals/fixtures/install.manifest.json`: version 1.4.0 → 1.8.0; add
+    `section-parallel` and `verify-incoming` entries to `skills[]` (EIIS I5).
+  - Doc/template footers: version string stripped per D1.
+
+---
+
+## [1.7.0] — 2026-06-04
 
 ### Added
 
@@ -267,7 +293,7 @@ Versioning: [Semantic Versioning](https://semver.org/).
 ### Fixed
 - `schemas/install.manifest.v1.json` re-vendored from EIIS v1.1 — the previously bundled copy lacked `codex` in the `hosts_wired` enum, causing the EIIS conformance checker's M14 (JSON Schema validation) to fail when a validator (`ajv` / `python -m jsonschema`) was on PATH. Pure schema fix; no install.sh behaviour change.
 
-## [Unreleased]
+<!-- shipped alongside v1.1.5 — block was left as [Unreleased] in the original commit -->
 
 ### Added
 - `.github/workflows/release.yml` — caller workflow that invokes the eidolons-nexus `eidolon-release-template.yml` (PR #24, 2026-04-29). Tagging a SemVer release now produces a GitHub Release with `release-manifest.json` (commit, tree, archive_sha256, manifest_sha256, provenance.github_attestation) and `SHA256SUMS`, ready for nexus-side `Roster Intake` to populate `versions.releases.<v>` in `roster/index.yaml`.

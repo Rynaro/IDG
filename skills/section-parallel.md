@@ -1,3 +1,10 @@
+---
+name: idg-section-parallel
+description: Operationalizes the G5 gated parallel doc-section synthesis mode for IDG. Use when composing a large document (six or more independent sections) routed at the TRANCE tier; fires dependency-layering, bounded per-layer fan-out (up to five subagents), per-section CHT mini-gate, topological-order parent assembly, and provenance merge. Do NOT use for standard-tier or small documents — sequential composition is always the default.
+metadata:
+  methodology: IDG
+---
+
 # Section-Parallel Synthesis (G5)
 
 Operationalizes the G5 form named in the cortex matrix: **gated parallel doc-section
@@ -108,4 +115,4 @@ section, exactly one parent coherence pass. No further iteration. Deliver with f
 
 ---
 
-*Scribe v1.6.0 — Section-Parallel Skill*
+*Scribe — Section-Parallel Skill*

@@ -1,6 +1,18 @@
+---
+name: idg-composition
+description: Governs how the Scribe transforms context into structured, grounded prose during the Draft phase. Use when starting any document composition, loading templates, applying structural markers, or writing section by section with topological ordering and envelope-aware intake.
+metadata:
+  methodology: IDG
+  phase: D
+---
+
 # Composition Methodology
 
 Loaded during the Draft phase. Governs how the Scribe transforms context into structured prose.
+
+## When to use
+
+Load this skill when entering the Draft (D) phase of the IDG cycle — specifically when beginning any document composition (session-chronicle, ADR, runbook, change-narrative, or custom). Also load it when applying structural markers, building section skeletons from templates, or checking ECL envelope sidecars during intake. Do NOT load upfront; trigger on demand at Draft entry.
 
 ---
 
@@ -48,7 +60,7 @@ Validate the sidecar JSON against the vendored schema at `schemas/ecl-envelope.v
 **Edge case — version outside compatibility range**: If `envelope.envelope_version` does not match `^1\.0(\.\d+)?$`, add a `[GAP]` marker:
 
 ```
-[GAP] envelope_version <X.Y> is outside the IDG v1.2.0 compatibility range (1.0.x).
+[GAP] envelope_version <X.Y> is outside the installed IDG version compatibility range.
 Verification skipped; chronicle proceeds without envelope provenance.
 ```
 
@@ -254,4 +266,4 @@ Before moving to the next section, verify:
 
 ---
 
-*Scribe v1.6.0 — Composition Skill*
+*Scribe — Composition Skill*

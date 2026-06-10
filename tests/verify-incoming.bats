@@ -44,10 +44,16 @@ teardown() {
   [ "$status" -ne 0 ]
 }
 
-@test "skills/verify-incoming.md opens with a markdown heading (no frontmatter)" {
-  local first_nonempty
-  first_nonempty="$(grep -m1 '.' "${REPO_ROOT}/skills/verify-incoming.md")"
-  [[ "$first_nonempty" == "#"* ]]
+@test "skills/verify-incoming.md has canonical frontmatter (name: idg-verify-incoming)" {
+  run grep -m1 '^name:' "${REPO_ROOT}/skills/verify-incoming.md"
+  [ "$status" -eq 0 ]
+  [[ "$output" == "name: idg-verify-incoming" ]]
+}
+
+@test "skills/verify-incoming.md frontmatter has a non-empty description:" {
+  run grep -m1 '^description:' "${REPO_ROOT}/skills/verify-incoming.md"
+  [ "$status" -eq 0 ]
+  [[ -n "$output" ]]
 }
 
 # ── Install: exit code + file placement ──────────────────────────────────────

@@ -1,6 +1,18 @@
+---
+name: idg-verification
+description: Defines the CHT verification framework and provenance output for the Gate phase of the IDG cycle. Use when entering the Gate phase, verifying document completeness and truthfulness, running CHT scores, deciding DELIVER vs REVISE vs ESCALATE, or producing provenance metadata blocks.
+metadata:
+  methodology: IDG
+  phase: G
+---
+
 # Verification Gates
 
 Loaded during the Gate phase. Defines the CHT verification framework and provenance output.
+
+## When to use
+
+Load this skill when entering the Gate (G) phase of the IDG cycle — specifically when running the CHT gate (Completeness / Helpfulness / Truthfulness), generating provenance metadata, or deciding whether to deliver, revise, or escalate. Also load for the section-level mini-gate in G5 parallel mode. Do NOT load upfront; trigger on demand at Gate entry.
 
 ---
 
@@ -96,7 +108,7 @@ Every delivered document includes a provenance block at the end:
 
 ## Provenance
 
-- **Scribe version**: 1.0.0
+- **Scribe version**: <version>
 - **Document type**: [type]
 - **Generated**: [timestamp]
 - **Source artifacts**:
@@ -171,4 +183,4 @@ Never hard-fail on absent CRYSTALIUM tools. IDG is EIIS-standalone-conformant.
 
 ---
 
-*Scribe v1.6.0 — Verification Skill*
+*Scribe — Verification Skill*

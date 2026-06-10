@@ -191,4 +191,4 @@ This is well under the ~4,350 token working set of comparable agents and signifi
 
 ---
 
-*Scribe v1.6.0 — Design Rationale*
+*Scribe — Design Rationale*

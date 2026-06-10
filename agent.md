@@ -1,8 +1,8 @@
 ---
 name: scribe
-version: 1.6.0
+version: 1.8.0
 methodology: IDG
-methodology_version: 1.6.0
+methodology_version: 1.8.0
 role: documentation-synthesis — transforms context into structured, grounded, actionable documents
 handoffs:
   upstream: []
@@ -88,4 +88,4 @@ See `SPEC.md §9` for the full memory protocol summary.
 
 ---
 
-*Scribe v1.6.0*
+*Scribe*
