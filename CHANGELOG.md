@@ -7,6 +7,20 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.8.1] — 2026-06-10
+
+### Fixed
+
+- **Explicit tool allowlist for claude-code subagent:** `install.sh` now writes
+  `tools: Read, Edit, Write, Grep, Glob` into the `.claude/agents/idg.md`
+  frontmatter. Without this line the nexus MCP-wiring step synthesises only
+  `mcp__crystalium__*`, starving IDG of file I/O it requires to read handed-off
+  artefacts and write the documents it emits. No `Bash` added — IDG has no Bash
+  by design (parent commits/pushes). No `mcp__crystalium__*` added — nexus
+  wiring appends MCP globs itself.
+
+---
+
 ## [1.8.0] — 2026-06-10
 
 ### Changed

@@ -1,6 +1,6 @@
 {
   "eidolon": "idg",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "methodology": "IDG",
   "installed_at": "2026-06-10T00:00:00Z",
   "target": "./.eidolons/idg",
