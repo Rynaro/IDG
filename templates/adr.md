@@ -81,7 +81,7 @@ Use for recording architecture and design decisions with their context and conse
 
 ## Provenance
 
-- **Scribe version**: 1.0.0
+- **Scribe version**: <version>
 - **Document type**: adr
 - **Generated**: [timestamp]
 - **Source artifacts**: [list; ECL envelope sources MAY be cited as `ecl://thread/<thread_id>/message/<message_id>`]
@@ -101,4 +101,4 @@ Use for recording architecture and design decisions with their context and conse
 
 ---
 
-*Scribe v1.6.0 — ADR Template*
+*Scribe — ADR Template*

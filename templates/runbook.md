@@ -95,7 +95,7 @@ Use for operational procedures — deployments, incident response, maintenance t
 
 ## Provenance
 
-- **Scribe version**: 1.0.0
+- **Scribe version**: <version>
 - **Document type**: runbook
 - **Generated**: [timestamp]
 - **Source artifacts**: [list; ECL envelope sources MAY be cited as `ecl://thread/<thread_id>/message/<message_id>`]
@@ -116,4 +116,4 @@ Use for operational procedures — deployments, incident response, maintenance t
 
 ---
 
-*Scribe v1.6.0 — Runbook Template*
+*Scribe — Runbook Template*

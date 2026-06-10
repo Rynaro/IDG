@@ -93,7 +93,7 @@ Use for documenting coding sessions — what happened, what changed, what was de
 
 ## Provenance
 
-- **Scribe version**: 1.0.0
+- **Scribe version**: <version>
 - **Document type**: session-chronicle
 - **Generated**: [timestamp]
 - **Source artifacts**: [list; ECL envelope sources may be cited as `ecl://thread/<thread_id>/message/<message_id>`]
@@ -113,4 +113,4 @@ Use for documenting coding sessions — what happened, what changed, what was de
 
 ---
 
-*Scribe v1.6.0 — Session Chronicle Template*
+*Scribe — Session Chronicle Template*

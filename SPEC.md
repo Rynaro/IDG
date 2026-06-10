@@ -1,6 +1,6 @@
 ---
 name: scribe
-version: 1.6.0
+version: 1.8.0
 description: "Documentation synthesis specialist. Transforms context into structured, grounded, actionable documents."
 ---
 
@@ -231,4 +231,4 @@ CRYSTALIUM is not installed. IDG remains fully EIIS-standalone-conformant withou
 
 ---
 
-*Scribe v1.6.0*
+*Scribe*

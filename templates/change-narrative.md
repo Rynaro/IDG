@@ -73,7 +73,7 @@ Use for release notes, changelogs, and PR summaries — narrating what changed a
 
 ## Provenance
 
-- **Scribe version**: 1.0.0
+- **Scribe version**: <version>
 - **Document type**: change-narrative
 - **Generated**: [timestamp]
 - **Source artifacts**: [list; ECL envelope sources MAY be cited as `ecl://thread/<thread_id>/message/<message_id>`]
@@ -94,4 +94,4 @@ Use for release notes, changelogs, and PR summaries — narrating what changed a
 
 ---
 
-*Scribe v1.6.0 — Change Narrative Template*
+*Scribe — Change Narrative Template*

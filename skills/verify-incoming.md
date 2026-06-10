@@ -1,3 +1,10 @@
+---
+name: idg-verify-incoming
+description: Blocking symmetric receiver integrity gate for inbound ECL hand-offs to IDG. Use automatically when reading any upstream artefact with a sibling .envelope.json — verifies SHA-256 integrity via orchestrator trace, validates contract conformance, and refuses (does not process) on any failure. Do NOT use for non-ECL artefacts or when no envelope sidecar is present.
+metadata:
+  methodology: IDG
+---
+
 # Verify-Incoming Skill — IDG (blocking, symmetric)
 
 Loaded when reading any upstream artefact handed off to IDG that carries a sibling `.envelope.json`. Blocking receiver integrity gate (ECL §6.2.2).
@@ -144,12 +151,12 @@ envelope is unparseable, use `unknown`.
 
 **verify_pass:**
 ```json
-{"ts":"<RFC3339>","event":"verify_pass","message_id":"<uuid>","thread_id":"<uuid>","from":"<eidolon>@<version>","to":"idg@1.1","performative":"<performative>","integrity_method":"sha256"}
+{"ts":"<RFC3339>","event":"verify_pass","message_id":"<uuid>","thread_id":"<uuid>","from":"<eidolon>@<version>","to":"idg@<version>","performative":"<performative>","integrity_method":"sha256"}
 ```
 
 **verify_fail:**
 ```json
-{"ts":"<RFC3339>","event":"verify_fail","message_id":"<uuid>","thread_id":"<uuid>","from":"<eidolon>@<version>","to":"idg@1.1","integrity_method":"sha256","verify_failure_code":"<CODE>","decision":"refused"}
+{"ts":"<RFC3339>","event":"verify_fail","message_id":"<uuid>","thread_id":"<uuid>","from":"<eidolon>@<version>","to":"idg@<version>","integrity_method":"sha256","verify_failure_code":"<CODE>","decision":"refused"}
 ```
 
 ---
@@ -168,4 +175,4 @@ envelope is unparseable, use `unknown`.
 
 ---
 
-*Verify-Incoming Skill — blocking, symmetric, mechanical-gate-backed (ECL §6.2.2)*
+*Scribe — Verify-Incoming Skill*
