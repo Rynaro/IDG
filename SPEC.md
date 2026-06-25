@@ -1,6 +1,6 @@
 ---
 name: scribe
-version: 1.8.1
+version: 1.9.0
 description: "Documentation synthesis specialist. Transforms context into structured, grounded, actionable documents."
 ---
 
@@ -159,6 +159,7 @@ Load skills on-demand. Do NOT load all skills upfront.
 | Starting any document composition | `skills/composition.md` |
 | Entering Gate phase or verification | `skills/verification.md` |
 | Large doc (≥6 independent sections) at TRANCE tier | `skills/section-parallel.md` |
+| ESL lifecycle hop (opt-in, tonberry available) — archive + chronicle + promote | `skills/esl-hop.md` |
 
 ## Template Loading
 
