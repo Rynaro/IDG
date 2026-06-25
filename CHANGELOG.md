@@ -7,6 +7,37 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.9.0] — 2026-06-25
+
+### Added
+
+- **ESL lifecycle-hop adoption (`skills/esl-hop.md`):** new on-demand skill giving
+  the Scribe ownership of the **archived** hop of the Eidolons Spec Lifecycle (ESL).
+  In an ESL-enabled project (`mcp__tonberry__*` available) when the cortex routes a
+  **verified**, drift-checked change to IDG, the Scribe:
+  1. calls `mcp__tonberry__archive --change_id <id>` (tonberry v0.4.0 **moves**
+     `.spectra/changes/<id>/` → `.spectra/changes/archive/<date>-<id>/`, sets
+     `status=archived` + `archive_path`);
+  2. chronicles the lifecycle outcome with provenance (its scribe role);
+  3. routes the promotion-intent ECL envelope (composed by `archive`) to
+     `mcp__crystalium__ingest` for durable spec-of-record promotion.
+  References the nexus cortex `methodology/cortex/esl-protocol.md`. **Graceful skip:**
+  tonberry absent → document normally; CRYSTALIUM absent → intent stays on disk;
+  never hard-fails. ESL is opt-in; IDG stays EIIS-standalone-conformant.
+  - Wired through `install.sh` (`wire_skill` loop, dry-run list, manifest
+    `skills[]` + `files_written[]`, source-of-truth + claude-code vendor copy).
+  - Added the Skill Loading row in `agent.md` and `SPEC.md`.
+  - Recorded the skill (source + claude-code vendor) in
+    `evals/fixtures/install.manifest.json`.
+
+### Changed
+
+- **Version stamp 1.8.1 → 1.9.0** across `install.sh` (`EIDOLON_VERSION`),
+  `agent.md`/`AGENTS.md` frontmatter, `SPEC.md` header, `hosts/claude-code.md`
+  example, and the fixture manifest top-level `version`.
+
+---
+
 ## [1.8.1] — 2026-06-10
 
 ### Fixed

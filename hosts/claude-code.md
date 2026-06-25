@@ -27,7 +27,7 @@ Claude Code loads `agent.md` into every session. Skills and templates load on-de
 ```yaml
 ---
 name: scribe
-version: 1.8.1
+version: 1.9.0
 methodology: IDG
 role: documentation-synthesis — transforms context into structured, grounded, actionable documents
 ---

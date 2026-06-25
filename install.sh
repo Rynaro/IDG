@@ -3,7 +3,7 @@ set -euo pipefail
 
 EIDOLON_NAME="idg"
 EIDOLON_SLUG="idg"
-EIDOLON_VERSION="1.8.1"
+EIDOLON_VERSION="1.9.0"
 METHODOLOGY="IDG"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -293,6 +293,7 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     echo "  ${TARGET}/skills/verification.md"
     echo "  ${TARGET}/skills/section-parallel.md"
     echo "  ${TARGET}/skills/verify-incoming.md"
+    echo "  ${TARGET}/skills/esl-hop.md"
     echo "  ${TARGET}/templates/session-chronicle.md"
     echo "  ${TARGET}/templates/adr.md"
     echo "  ${TARGET}/templates/runbook.md"
@@ -412,7 +413,7 @@ Cycle:     I (Intake) → D (Draft) → G (Gate)
     }
 
     # Emit per-skill source-of-truth + vendor files for every skill.
-    for skill in composition verification section-parallel verify-incoming; do
+    for skill in composition verification section-parallel verify-incoming esl-hop; do
       wire_skill "${skill}"
     done
 
@@ -538,6 +539,7 @@ if [[ "$DRY_RUN" != "true" ]]; then
     sha_verif=$(sha256_file "${TARGET}/skills/verification.md")
     sha_secpar=$(sha256_file "${TARGET}/skills/section-parallel.md")
     sha_verinc=$(sha256_file "${TARGET}/skills/verify-incoming.md")
+    sha_eslhop=$(sha256_file "${TARGET}/skills/esl-hop.md")
     sha_chron=$(sha256_file "${TARGET}/templates/session-chronicle.md")
     sha_adr=$(sha256_file "${TARGET}/templates/adr.md")
     sha_run=$(sha256_file "${TARGET}/templates/runbook.md")
@@ -552,11 +554,13 @@ if [[ "$DRY_RUN" != "true" ]]; then
     sha_verif_vendor=""
     sha_secpar_vendor=""
     sha_verinc_vendor=""
+    sha_eslhop_vendor=""
     if hosts_contains "claude-code"; then
       sha_comp_vendor=$(sha256_file ".claude/skills/${EIDOLON_SLUG}-composition/SKILL.md")
       sha_verif_vendor=$(sha256_file ".claude/skills/${EIDOLON_SLUG}-verification/SKILL.md")
       sha_secpar_vendor=$(sha256_file ".claude/skills/${EIDOLON_SLUG}-section-parallel/SKILL.md")
       sha_verinc_vendor=$(sha256_file ".claude/skills/${EIDOLON_SLUG}-verify-incoming/SKILL.md")
+      sha_eslhop_vendor=$(sha256_file ".claude/skills/${EIDOLON_SLUG}-esl-hop/SKILL.md")
     fi
 
     files_entries=""
@@ -595,6 +599,9 @@ if [[ "$DRY_RUN" != "true" ]]; then
     files_append \
       "{\"path\": \"skills/verify-incoming.md\",      \"sha256\": \"${sha_verinc}\",  \"role\": \"skill\",         \"mode\": \"created\"}" \
       "skills/verify-incoming.md"
+    files_append \
+      "{\"path\": \"skills/esl-hop.md\",              \"sha256\": \"${sha_eslhop}\",  \"role\": \"skill\",         \"mode\": \"created\"}" \
+      "skills/esl-hop.md"
     if hosts_contains "claude-code"; then
       files_append \
         "{\"path\": \".claude/skills/${EIDOLON_SLUG}-composition/SKILL.md\",  \"sha256\": \"${sha_comp_vendor}\",  \"role\": \"skill\", \"mode\": \"created\"}" \
@@ -607,6 +614,9 @@ if [[ "$DRY_RUN" != "true" ]]; then
         ""
       files_append \
         "{\"path\": \".claude/skills/${EIDOLON_SLUG}-verify-incoming/SKILL.md\", \"sha256\": \"${sha_verinc_vendor}\", \"role\": \"skill\", \"mode\": \"created\"}" \
+        ""
+      files_append \
+        "{\"path\": \".claude/skills/${EIDOLON_SLUG}-esl-hop/SKILL.md\", \"sha256\": \"${sha_eslhop_vendor}\", \"role\": \"skill\", \"mode\": \"created\"}" \
         ""
     fi
     files_append \
@@ -665,14 +675,16 @@ ${files_entries}
     {\"name\": \"composition\",      \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/composition.md\",      \"source_sha256\": \"${sha_comp}\",   \"vendor_path\": \".claude/skills/${EIDOLON_SLUG}-composition/SKILL.md\",      \"vendor_sha256\": \"${sha_comp_vendor}\"},
     {\"name\": \"verification\",     \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/verification.md\",     \"source_sha256\": \"${sha_verif}\",  \"vendor_path\": \".claude/skills/${EIDOLON_SLUG}-verification/SKILL.md\",     \"vendor_sha256\": \"${sha_verif_vendor}\"},
     {\"name\": \"section-parallel\", \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/section-parallel.md\", \"source_sha256\": \"${sha_secpar}\", \"vendor_path\": \".claude/skills/${EIDOLON_SLUG}-section-parallel/SKILL.md\", \"vendor_sha256\": \"${sha_secpar_vendor}\"},
-    {\"name\": \"verify-incoming\",  \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/verify-incoming.md\",  \"source_sha256\": \"${sha_verinc}\", \"vendor_path\": \".claude/skills/${EIDOLON_SLUG}-verify-incoming/SKILL.md\",  \"vendor_sha256\": \"${sha_verinc_vendor}\"}
+    {\"name\": \"verify-incoming\",  \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/verify-incoming.md\",  \"source_sha256\": \"${sha_verinc}\", \"vendor_path\": \".claude/skills/${EIDOLON_SLUG}-verify-incoming/SKILL.md\",  \"vendor_sha256\": \"${sha_verinc_vendor}\"},
+    {\"name\": \"esl-hop\",          \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/esl-hop.md\",          \"source_sha256\": \"${sha_eslhop}\", \"vendor_path\": \".claude/skills/${EIDOLON_SLUG}-esl-hop/SKILL.md\",          \"vendor_sha256\": \"${sha_eslhop_vendor}\"}
   ]"
     else
       skills_json="[
     {\"name\": \"composition\",      \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/composition.md\",      \"source_sha256\": \"${sha_comp}\"},
     {\"name\": \"verification\",     \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/verification.md\",     \"source_sha256\": \"${sha_verif}\"},
     {\"name\": \"section-parallel\", \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/section-parallel.md\", \"source_sha256\": \"${sha_secpar}\"},
-    {\"name\": \"verify-incoming\",  \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/verify-incoming.md\",  \"source_sha256\": \"${sha_verinc}\"}
+    {\"name\": \"verify-incoming\",  \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/verify-incoming.md\",  \"source_sha256\": \"${sha_verinc}\"},
+    {\"name\": \"esl-hop\",          \"source_path\": \".eidolons/${EIDOLON_SLUG}/skills/esl-hop.md\",          \"source_sha256\": \"${sha_eslhop}\"}
   ]"
     fi
   fi
