@@ -1,6 +1,6 @@
 {
   "eidolon": "idg",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "methodology": "IDG",
   "installed_at": "2026-06-10T00:00:00Z",
   "target": "./.eidolons/idg",
@@ -33,6 +33,7 @@
     {"path": "templates/runbook.md",           "sha256": "38f9a54112717d4caa4520bd2e78cf34b77f629e5e4809df49855fcb43362b04",   "role": "template",      "mode": "created"},
     {"path": "templates/change-narrative.md",  "sha256": "929e89009adccd42ae9ba810fc03ac001b40eb67ad087f62ae36b75bf82cab98",    "role": "template",      "mode": "created"},
     {"path": "schemas/ecl-envelope.v1.json",                    "sha256": "855314c0607e2c31327804f34f552aaf8411e1cef2d864422b293e2f6449496f", "role": "other", "mode": "created"},
+    {"path": "schemas/ecl-envelope.v2.json",                    "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "role": "other", "mode": "created"},
     {"path": "schemas/ecl-base-profile.v1.json",                "sha256": "f21a83c93c610aa88b352447cfeb00aecded03957c5a65c28b75242842e1aa2d",  "role": "other", "mode": "created"},
     {"path": "schemas/apivr-completion-report-profile.v1.json", "sha256": "bd13b10246211b91d14d7d722ea884850c911d3911fc566efc0da09de0b0315c", "role": "other", "mode": "created"},
     {"path": "schemas/root-cause-report-profile.v1.json",       "sha256": "f7f12c6c12ff78b1b4d583ff3a53859a345c5a2c8b12eaf291fca7a816d1a319",  "role": "other", "mode": "created"}

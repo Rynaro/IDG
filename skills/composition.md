@@ -40,9 +40,9 @@ conformant and works without CRYSTALIUM.
 
 ---
 
-## Envelope-Aware Intake (ECL v1.0)
+## Envelope-Aware Intake (ECL v2.0)
 
-When classifying a source artefact during the **I — Intake** phase, check whether the artefact arrived with an ECL sidecar envelope. The four steps below are always executed in order when any `*.envelope.json` file is present; the overall verification is **warn-only** — IDG always produces the document.
+When classifying a source artefact during the **I — Intake** phase, check whether the artefact arrived with an ECL sidecar envelope. The four steps below keep the same intake numbering IDG has always used — but validation, integrity, and contract-conformance checks are no longer re-implemented here. They are a single **blocking** gate owned by `skills/verify-incoming.md` (ECL §6.2.2, converged with the canonical shape (Kupo reference implementation)) — **one gate, not two**.
 
 ### Step 1 — Detect
 
@@ -55,54 +55,19 @@ If **no sidecar is found**, proceed normally. In the provenance block note: "no 
 
 ### Step 2 — Validate
 
-Validate the sidecar JSON against the vendored schema at `schemas/ecl-envelope.v1.json`.
-
-**Edge case — version outside compatibility range**: If `envelope.envelope_version` does not match `^1\.0(\.\d+)?$`, add a `[GAP]` marker:
-
-```
-[GAP] envelope_version <X.Y> is outside the installed IDG version compatibility range.
-Verification skipped; chronicle proceeds without envelope provenance.
-```
+Schema validation of the sidecar against the vendored ECL v2.0 envelope schema (`schemas/ecl-envelope.v2.json`; `schemas/ecl-envelope.v1.json` retained for the ECL §7.3 compatibility window) is owned by `skills/verify-incoming.md`. Load it now — do not validate the sidecar inline here.
 
 ### Step 3 — Recompute and compare sha256
 
-Compute the sha256 digest of the payload file and compare it to `envelope.integrity.value`.
-
-**Only `method: "sha256"` is supported.** If `integrity.method == "hmac-sha256"`, add:
-
-```
-[GAP] integrity.method is hmac-sha256; shared secret unavailable to IDG.
-Verification inconclusive; treating envelope as informational only.
-```
-
-**Digest matches** → record `verify_pass` in working memory.
-**Digest mismatches** → record `verify_fail` in working memory; add `[DISPUTED]` to the chronicle:
-
-```
-[DISPUTED] ECL envelope sha256 mismatch for <payload-path>.
-Envelope claims <expected>; recomputed digest is <actual>.
-Source integrity cannot be confirmed; treat content with caution.
-```
+sha256 recomputation against `envelope.integrity.value` is likewise owned by `skills/verify-incoming.md`. A mismatch is a **blocking REFUSE** at the gate, not a local `[DISPUTED]` marker — Draft-phase composition never sees a payload whose integrity hasn't already been confirmed.
 
 ### Step 4 — Check performative
 
-Confirm that `envelope.performative` is in the allowed inbound set for the sender:
-
-| Sender (`from.eidolon`) | Allowed performatives |
-|---|---|
-| `apivr` | `PROPOSE`, `INFORM` |
-| `vigil` | `PROPOSE`, `INFORM` |
-| any other | any (treat as `INFORM`) |
-
-If the performative is outside the allowed set for the declared sender, add:
-
-```
-[GAP] Unexpected performative <X> from <sender>; treating as INFORM and proceeding.
-```
+Performative and `artifact.kind` conformance against the declared inbound edge (`contracts/<from>-to-idg.yaml`) is validated by `skills/verify-incoming.md`. An out-of-contract hand-off is refused at the gate before Intake classification begins — it never reaches this step as a live payload.
 
 ### Record and trace
 
-After Steps 1–4, record the full outcome in working memory:
+Once `skills/verify-incoming.md` has recorded `verify_pass` (a failed gate refuses before Intake starts, so `verify_fail` never reaches this point), carry its outcome into working memory:
 
 ```
 ecl_verification:
@@ -110,44 +75,12 @@ ecl_verification:
   thread_id: <uuid>
   from: <eidolon slug>
   performative: <value>
-  outcome: verify_pass | verify_fail | inconclusive | skipped
+  outcome: verify_pass | skipped
 ```
 
-This record surfaces in the Gate phase and populates the chronicle's Communication Lineage section and provenance block.
-
-**RECOMMENDED**: Append a trace event at `.eidolons/.trace/<thread_id>.jsonl` per ECL §5.1.2:
-
-```jsonl
-{"event":"receive","ts":"<RFC3339>","message_id":"<uuid>","from":"<slug>","to":"idg"}
-{"event":"verify_pass","ts":"<RFC3339>","message_id":"<uuid>"}
-```
-
-(or `"verify_fail"` with a `"reason"` field on mismatch). This trace is RECOMMENDED, not REQUIRED.
+This record surfaces in the Gate phase and populates the chronicle's Communication Lineage section and provenance block. If the verified envelope carries `ise.assertion_grade` (ECL v2.0 §6.5), surface it alongside — the provenance block should let the reader distinguish upstream work that was mechanically `validated` from work that was only `self-attested`. See `skills/verify-incoming.md`.
 
 **IDG does not, and shall not, fetch any envelope referenced via `input_handles`**. P0 forbids retrieval. If a handle resolves to a path already in-context (the requester has explicitly provided the file), reading it is permitted. Otherwise mark `[GAP]`.
-
-### Worked examples
-
-**Example A — verify_pass**
-
-Input: `report.md` + `report.md.envelope.json`
-- Schema validates. `integrity.method == "sha256"`. `sha256(report.md)` matches `envelope.integrity.value`. `performative == "PROPOSE"` (allowed from `apivr`).
-- Working memory: `outcome: verify_pass`, `performative: PROPOSE`, `message_id: abc-123`.
-- Provenance block entry: `ecl://thread/<thread_id>/message/abc-123 — verify_pass`.
-
-**Example B — verify_fail (sha256 mismatch)**
-
-Input: `report.md` + `report.md.envelope.json`
-- Schema validates. `integrity.method == "sha256"`. Recomputed digest does NOT match `envelope.integrity.value`.
-- Working memory: `outcome: verify_fail`.
-- Chronicle body gains:
-  ```
-  [DISPUTED] ECL envelope sha256 mismatch for report.md.
-  Envelope claims d4e5f6...; recomputed digest is a1b2c3....
-  Source integrity cannot be confirmed; treat content with caution.
-  ```
-- Provenance block entry: `ecl://thread/<thread_id>/message/<id> — verify_fail`.
-- Truthfulness score: NOT automatically lowered; the `[DISPUTED]` marker documents the discrepancy. Document is delivered with the flag.
 
 ---
 
