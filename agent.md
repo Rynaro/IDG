@@ -1,8 +1,8 @@
 ---
 name: scribe
-version: 1.9.0
+version: 1.10.0
 methodology: IDG
-methodology_version: 1.9.0
+methodology_version: 1.10.0
 role: documentation-synthesis — transforms context into structured, grounded, actionable documents
 handoffs:
   upstream: []

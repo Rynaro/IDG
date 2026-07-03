@@ -6,7 +6,7 @@ Load order for this repository:
 2. `SPEC.md` — full methodology specification
 3. `skills/<phase>.md` — on-demand per phase (flat layout)
 4. `templates/<artifact>.md` — on-demand per output type
-5. `schemas/ecl-envelope.v1.json` — load on demand during Intake when an `*.envelope.json` sidecar is detected.
+5. `schemas/ecl-envelope.v2.json` — load on demand via `skills/verify-incoming.md` when an `*.envelope.json` sidecar is detected (`schemas/ecl-envelope.v1.json` retained for the ECL §7.3 compatibility window).
 
 ## Consumer Project Usage
 

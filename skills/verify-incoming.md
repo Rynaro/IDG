@@ -137,9 +137,21 @@ On **any** integrity or contract failure:
 
 Failure codes: `INTEGRITY_MISMATCH`, `UNVERIFIED` (no `verify_pass` on record),
 `SCHEMA_INVALID`, `UNDECLARED_EDGE`, `PERFORMATIVE_NOT_ALLOWED`,
-`ARTIFACT_KIND_NOT_ALLOWED`.
+`ARTIFACT_KIND_NOT_ALLOWED`, `CONTEXT_OVER_BUDGET`, `MISSING_REQUIRED_SECTION`.
 
 On success: append `verify_pass`, then proceed with the payload.
+
+---
+
+## ISE Consumption (informational, ECL v2.0 §6.5)
+
+On `verify_pass`, if the envelope carries the optional `ise` block, surface
+`ise.assertion_grade` (`unverified` / `self-attested` / `validated` /
+`human-reviewed`) into working memory alongside the trace fields, so the
+chronicle's provenance block can record whether the upstream artefact was
+mechanically validated or only self-attested. IDG emits no envelopes of its
+own (`handoffs.emits = []`), so this is **consumption-only** — IDG never sets
+`ise` on anything it produces.
 
 ---
 
@@ -165,8 +177,8 @@ envelope is unparseable, use `unknown`.
 
 - **Blocking, not warn-only.** Refusal is the whole point: a receiver that
   processes a tamper-flagged payload defeats the provenance guarantee.
-- **Symmetric.** All six Eidolons ship this gate with identical semantics; the
-  only per-Eidolon variation is the inbound-edge table above.
+- **Symmetric.** All Eidolons in the roster ship this gate with identical
+  semantics; the only per-Eidolon variation is the inbound-edge table above.
 - **Mechanical gate, single source of truth.** The SHA-256 comparison is the
   nexus `eidolons verify-envelope` verb (ECL §6.2.2) — never re-implemented or
   LLM-estimated in this skill.

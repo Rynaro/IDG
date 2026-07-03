@@ -7,6 +7,78 @@ Versioning: [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.10.0] — 2026-07-03 — ECL v2.0 adoption (vendoring + intake retirement)
+
+### Added
+
+- **ECL v2.0 vendoring.** `schemas/ecl-envelope.v2.json` — self-contained vendored copy
+  of `eidolons-ecl@v2.0.0`'s `schemas/envelope.v2.json` (spec/ecl-2.0.md §6.5), following
+  the same inlined-enum, self-contained convention as the existing
+  `schemas/ecl-envelope.v1.json`. The v1 file is **retained**, not replaced — IDG's own
+  tooling can still validate a v1.x sidecar received during the ECL §7.3 compatibility
+  window (through 2027-05-13). Wired into `install.sh` (dry-run list, `cp`, sha var,
+  `files_append`, canonical-inventory allow-set).
+- **ISE consumption note** (ECL v2.0 §6.5). IDG emits nothing (`handoffs.emits = []`), so
+  this is consumption-only: `skills/verify-incoming.md` gains a short "ISE Consumption"
+  section — on `verify_pass`, an inbound envelope's `ise.assertion_grade` (`unverified` /
+  `self-attested` / `validated` / `human-reviewed`) is surfaced into working memory.
+  `skills/composition.md`'s intake flow carries it into the chronicle's provenance block.
+  All four templates (`session-chronicle`, `adr`, `runbook`, `change-narrative`) gain an
+  additive Provenance line noting that cited ECL sources MAY append the grade (e.g.
+  `(validated)`); `session-chronicle.md`'s Communication Lineage table gains an `ise_grade`
+  column; `change-narrative.md`'s Guidance gains a bullet on citing validated-vs-self-attested
+  upstream work specifically.
+
+### Changed
+
+- **Retired the divergent warn-only intake (headline).** `skills/composition.md`'s
+  "Envelope-Aware Intake (ECL v1.0)" section — a second, warn-only, `ecl-envelope.v1.json`
+  + `^1\.0` verification path that had drifted out of sync with the blocking
+  `skills/verify-incoming.md` gate shipped in v1.7.0 — is retired. The section keeps its
+  original four-step numbering (Detect / Validate / Recompute-and-compare-sha256 /
+  Check-performative) so the Draft-phase reference shape is unchanged, but steps 2–4 now
+  defer to `skills/verify-incoming.md` instead of re-implementing schema validation, sha256
+  recomputation, and performative checks inline. The old "Worked examples" subsection
+  (including the `verify_fail` → `[DISPUTED]`-but-deliver-anyway example, which described
+  behaviour the blocking gate had already superseded) is removed — that failure path is now
+  fully owned by `skills/verify-incoming.md`'s Failure Mode section. **One gate, not two.**
+- **`SPEC.md` "ECL Composition" section** rewritten from `(v1.0)` to `(v2.0)`: the six-step
+  inbound-verification list (which duplicated the same now-retired warn-only flow) is
+  replaced by a short description that defers to `skills/verify-incoming.md`; the "Never
+  refuses to chronicle" line is removed (no longer true — a failed gate REFUSES before
+  Intake begins); a new "ISE consumption" subsection is added; the Gate — Truthfulness
+  paragraph now cites `ise.assertion_grade` alongside the existing envelope fields.
+- **Drift kill (mixed `envelope_version` examples, all → 2.0).** `SPEC.md` declared
+  `comm.envelope_version: "1.0"` in prose while `agent.md`/`AGENTS.md` frontmatter already
+  said `"2.0"` — reconciled to `2.0`. `skills/composition.md`'s stale `^1\.0(\.\d+)?$`
+  compatibility regex is gone along with the retired section. `templates/session-chronicle.md`'s
+  Communication Lineage note ("ECL v1.0 envelopes") → "ECL v2.0 envelopes". `CLAUDE.md`'s
+  load-order pointer (item 5) now names `schemas/ecl-envelope.v2.json` (with a note that v1
+  is retained) instead of the stale v1-only reference.
+- **Canonical verify-incoming convergence (Kupo reference implementation).** `skills/verify-incoming.md`
+  failure-code list gains `CONTEXT_OVER_BUDGET` and `MISSING_REQUIRED_SECTION` (ECL v2.0
+  §5.3 canonical set; Kupo already listed both). "All six Eidolons ship this gate" → "All
+  Eidolons in the roster ship this gate" (the "six" count was stale). IDG's own
+  inbound-edge table (atlas/spectra/apivr/vigil) is unchanged.
+- **Version stamp 1.9.0 → 1.10.0** in the 5 canonical homes: `install.sh`
+  (`EIDOLON_VERSION`), `agent.md`/`AGENTS.md` frontmatter, `SPEC.md` header,
+  `hosts/claude-code.md` example, and the fixture manifest top-level version.
+
+### Tests
+
+- `tests/verify-incoming.bats`: no changes needed — assertions were already
+  version-agnostic.
+- New `tests/ecl-v2-adoption.bats`: v2 schema shape (`ise` `$defs`, `envelope_version`
+  pattern strict to `2.0`), v1 schema retention, install.sh wiring, drift-kill greps (no
+  stray "ECL v1.0" prose or `ecl-envelope.v1.json`/`^1\.0` intake references left in
+  `skills/composition.md`), verify-incoming convergence (new failure codes, "roster"
+  phrasing), ISE consumption presence across `skills/verify-incoming.md`,
+  `skills/composition.md`, and all four templates, and version-stamp agreement across the
+  5 canonical homes. Full suite run clean against the pre-sweep baseline first (`git
+  stash`), then green after the sweep.
+
+---
+
 ## [1.9.0] — 2026-06-25
 
 ### Added

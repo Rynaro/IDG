@@ -3,7 +3,7 @@ set -euo pipefail
 
 EIDOLON_NAME="idg"
 EIDOLON_SLUG="idg"
-EIDOLON_VERSION="1.9.0"
+EIDOLON_VERSION="1.10.0"
 METHODOLOGY="IDG"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -299,6 +299,7 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     echo "  ${TARGET}/templates/runbook.md"
     echo "  ${TARGET}/templates/change-narrative.md"
     echo "  ${TARGET}/schemas/ecl-envelope.v1.json"
+    echo "  ${TARGET}/schemas/ecl-envelope.v2.json"
     echo "  ${TARGET}/schemas/ecl-base-profile.v1.json"
     echo "  ${TARGET}/schemas/apivr-completion-report-profile.v1.json"
     echo "  ${TARGET}/schemas/root-cause-report-profile.v1.json"
@@ -328,8 +329,12 @@ if [[ "$MANIFEST_ONLY" != "true" ]]; then
     cp "${SCRIPT_DIR}/templates/runbook.md"                       "${TARGET}/templates/runbook.md"
     cp "${SCRIPT_DIR}/templates/change-narrative.md"              "${TARGET}/templates/change-narrative.md"
 
-    # Copy vendored ECL schemas (reference material for Intake skill)
+    # Copy vendored ECL schemas (reference material for the verify-incoming
+    # gate). ecl-envelope.v1.json is RETAINED alongside v2 (not replaced) so
+    # IDG's own tooling can still validate a v1.x sidecar received during the
+    # ECL §7.3 compatibility window (through 2027-05-13).
     cp "${SCRIPT_DIR}/schemas/ecl-envelope.v1.json"                       "${TARGET}/schemas/ecl-envelope.v1.json"
+    cp "${SCRIPT_DIR}/schemas/ecl-envelope.v2.json"                       "${TARGET}/schemas/ecl-envelope.v2.json"
     cp "${SCRIPT_DIR}/schemas/ecl-base-profile.v1.json"                   "${TARGET}/schemas/ecl-base-profile.v1.json"
     cp "${SCRIPT_DIR}/schemas/apivr-completion-report-profile.v1.json"    "${TARGET}/schemas/apivr-completion-report-profile.v1.json"
     cp "${SCRIPT_DIR}/schemas/root-cause-report-profile.v1.json"          "${TARGET}/schemas/root-cause-report-profile.v1.json"
@@ -545,6 +550,7 @@ if [[ "$DRY_RUN" != "true" ]]; then
     sha_run=$(sha256_file "${TARGET}/templates/runbook.md")
     sha_cn=$(sha256_file "${TARGET}/templates/change-narrative.md")
     sha_ecl_env=$(sha256_file "${TARGET}/schemas/ecl-envelope.v1.json")
+    sha_ecl_env_v2=$(sha256_file "${TARGET}/schemas/ecl-envelope.v2.json")
     sha_ecl_base=$(sha256_file "${TARGET}/schemas/ecl-base-profile.v1.json")
     sha_ecl_apivr=$(sha256_file "${TARGET}/schemas/apivr-completion-report-profile.v1.json")
     sha_ecl_rcr=$(sha256_file "${TARGET}/schemas/root-cause-report-profile.v1.json")
@@ -634,6 +640,9 @@ if [[ "$DRY_RUN" != "true" ]]; then
     files_append \
       "{\"path\": \"schemas/ecl-envelope.v1.json\",                    \"sha256\": \"${sha_ecl_env}\",   \"role\": \"other\", \"mode\": \"created\"}" \
       "schemas/ecl-envelope.v1.json"
+    files_append \
+      "{\"path\": \"schemas/ecl-envelope.v2.json\",                    \"sha256\": \"${sha_ecl_env_v2}\", \"role\": \"other\", \"mode\": \"created\"}" \
+      "schemas/ecl-envelope.v2.json"
     files_append \
       "{\"path\": \"schemas/ecl-base-profile.v1.json\",                \"sha256\": \"${sha_ecl_base}\",  \"role\": \"other\", \"mode\": \"created\"}" \
       "schemas/ecl-base-profile.v1.json"
