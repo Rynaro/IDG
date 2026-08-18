@@ -111,7 +111,7 @@ aggregation for open-ended prose (R3-02, R3-06); structured-note memory-as-files
 provenance merged by the coordinator (R4-10).
 
 **Decision**: Operationalize the cortex's G5 form as a runnable five-step mode
-(`skills/section-parallel.md`) — dependency-layering → ≤5 clean-context per-section
+(`skills/section-parallel/SKILL.md`) — dependency-layering → ≤5 clean-context per-section
 subagents per layer → per-section CHT mini-gate (one revision max) → topological-order
 parent assembly by selection → one coherence pass + provenance merge. Keep it
 **TRANCE-gated and never the default**: it fires only for documents with ≥6 independent
@@ -161,11 +161,11 @@ mode raises output quality; the score delta is an unbenchmarked, M-confidence es
 | Component | Estimated Tokens | When Loaded |
 |-----------|-----------------|-------------|
 | SPEC.md (full methodology) | ~900 | On demand |
-| skills/composition.md | ~913 | Draft phase |
-| skills/verification.md | ~834 | Gate phase |
+| skills/composition/SKILL.md | ~913 | Draft phase |
+| skills/verification/SKILL.md | ~834 | Gate phase |
 | Template (largest: runbook) | ~499 | Per document type |
 
-**Typical working set**: agent.md + one skill + one template ≈ **2,200 tokens**
+**Typical working set**: PERSONA.md + one skill + one template ≈ **2,200 tokens**
 
 This is well under the ~4,350 token working set of comparable agents and significantly under the 5,000–15,000 token range of commercial monolithic system prompts. The remaining context budget is available for the actual source material the Scribe needs to synthesize.
 

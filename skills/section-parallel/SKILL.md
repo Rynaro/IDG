@@ -9,7 +9,7 @@ metadata:
 
 Operationalizes the G5 form named in the cortex matrix: **gated parallel doc-section
 synthesis**. This is the runnable mode behind the sequential "topological section
-order" rule in `skills/composition.md`. It is **TRANCE-gated and never the default** —
+order" rule in `skills/composition/SKILL.md`. It is **TRANCE-gated and never the default** —
 standard tier always composes sequentially.
 
 Load this skill only when the gate below fires. For small documents it is a no-op.
@@ -26,7 +26,7 @@ Activate section-parallel synthesis only when **all** of these hold:
   no write-conflict risk and needs no worktree isolation.
 - The caller (cortex/host) routed the task at the **TRANCE** tier.
 
-Otherwise compose sequentially per `skills/composition.md`. Small ADRs, runbooks, and
+Otherwise compose sequentially per `skills/composition/SKILL.md`. Small ADRs, runbooks, and
 any document with fewer than six independent sections are an explicit **no-op** — do not
 fan out; the coordination overhead is not repaid.
 
@@ -49,7 +49,7 @@ later.
 For each layer, in layer order, dispatch **at most five** clean-context per-section
 subagents — one section per subagent. Each subagent receives **only** the source
 material relevant to its section (the per-section context budget of
-`skills/composition.md` still applies: ≤ ~2,000 tokens; summarize and cite beyond that).
+`skills/composition/SKILL.md` still applies: ≤ ~2,000 tokens; summarize and cite beyond that).
 
 A subagent runs in a **clean context** — it sees its section scope, its selected source
 slice, and the already-assembled prior layers as read-only reference. It never sees
@@ -62,7 +62,7 @@ disk and no worktree is created.
 ### 3. Per-section CHT mini-gate (one revision max)
 
 Each subagent runs a **per-section** CHT mini-gate on its own draft before returning it
-(see `skills/verification.md` — two-granularity CHT). Score the section on Completeness,
+(see `skills/verification/SKILL.md` — two-granularity CHT). Score the section on Completeness,
 Helpfulness, and Truthfulness:
 
 - All three ≥ 4 → return the section.
@@ -84,7 +84,7 @@ same section, the parent **selects** the higher per-section CHT score and discar
 other; it never concatenates or averages prose.)
 
 Where two sections make claims that conflict, the parent does not silently pick a winner:
-it emits a `[DISPUTED]` marker presenting both, per `skills/composition.md`.
+it emits a `[DISPUTED]` marker presenting both, per `skills/composition/SKILL.md`.
 
 ### 5. One document-level coherence pass + provenance merge
 

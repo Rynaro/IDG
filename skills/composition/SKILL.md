@@ -42,7 +42,7 @@ conformant and works without CRYSTALIUM.
 
 ## Envelope-Aware Intake (ECL v2.0)
 
-When classifying a source artefact during the **I — Intake** phase, check whether the artefact arrived with an ECL sidecar envelope. The four steps below keep the same intake numbering IDG has always used — but validation, integrity, and contract-conformance checks are no longer re-implemented here. They are a single **blocking** gate owned by `skills/verify-incoming.md` (ECL §6.2.2, converged with the canonical shape (Kupo reference implementation)) — **one gate, not two**.
+When classifying a source artefact during the **I — Intake** phase, check whether the artefact arrived with an ECL sidecar envelope. The four steps below keep the same intake numbering IDG has always used — but validation, integrity, and contract-conformance checks are no longer re-implemented here. They are a single **blocking** gate owned by `skills/verify-incoming/SKILL.md` (ECL §6.2.2, converged with the canonical shape (Kupo reference implementation)) — **one gate, not two**.
 
 ### Step 1 — Detect
 
@@ -55,19 +55,19 @@ If **no sidecar is found**, proceed normally. In the provenance block note: "no 
 
 ### Step 2 — Validate
 
-Schema validation of the sidecar against the vendored ECL v2.0 envelope schema (`schemas/ecl-envelope.v2.json`; `schemas/ecl-envelope.v1.json` retained for the ECL §7.3 compatibility window) is owned by `skills/verify-incoming.md`. Load it now — do not validate the sidecar inline here.
+Schema validation of the sidecar against the vendored ECL v2.0 envelope schema (`schemas/ecl-envelope.v2.json`; `schemas/ecl-envelope.v1.json` retained for the ECL §7.3 compatibility window) is owned by `skills/verify-incoming/SKILL.md`. Load it now — do not validate the sidecar inline here.
 
 ### Step 3 — Recompute and compare sha256
 
-sha256 recomputation against `envelope.integrity.value` is likewise owned by `skills/verify-incoming.md`. A mismatch is a **blocking REFUSE** at the gate, not a local `[DISPUTED]` marker — Draft-phase composition never sees a payload whose integrity hasn't already been confirmed.
+sha256 recomputation against `envelope.integrity.value` is likewise owned by `skills/verify-incoming/SKILL.md`. A mismatch is a **blocking REFUSE** at the gate, not a local `[DISPUTED]` marker — Draft-phase composition never sees a payload whose integrity hasn't already been confirmed.
 
 ### Step 4 — Check performative
 
-Performative and `artifact.kind` conformance against the declared inbound edge (`contracts/<from>-to-idg.yaml`) is validated by `skills/verify-incoming.md`. An out-of-contract hand-off is refused at the gate before Intake classification begins — it never reaches this step as a live payload.
+Performative and `artifact.kind` conformance against the declared inbound edge (`contracts/<from>-to-idg.yaml`) is validated by `skills/verify-incoming/SKILL.md`. An out-of-contract hand-off is refused at the gate before Intake classification begins — it never reaches this step as a live payload.
 
 ### Record and trace
 
-Once `skills/verify-incoming.md` has recorded `verify_pass` (a failed gate refuses before Intake starts, so `verify_fail` never reaches this point), carry its outcome into working memory:
+Once `skills/verify-incoming/SKILL.md` has recorded `verify_pass` (a failed gate refuses before Intake starts, so `verify_fail` never reaches this point), carry its outcome into working memory:
 
 ```
 ecl_verification:
@@ -78,7 +78,7 @@ ecl_verification:
   outcome: verify_pass | skipped
 ```
 
-This record surfaces in the Gate phase and populates the chronicle's Communication Lineage section and provenance block. If the verified envelope carries `ise.assertion_grade` (ECL v2.0 §6.5), surface it alongside — the provenance block should let the reader distinguish upstream work that was mechanically `validated` from work that was only `self-attested`. See `skills/verify-incoming.md`.
+This record surfaces in the Gate phase and populates the chronicle's Communication Lineage section and provenance block. If the verified envelope carries `ise.assertion_grade` (ECL v2.0 §6.5), surface it alongside — the provenance block should let the reader distinguish upstream work that was mechanically `validated` from work that was only `self-attested`. See `skills/verify-incoming/SKILL.md`.
 
 **IDG does not, and shall not, fetch any envelope referenced via `input_handles`**. P0 forbids retrieval. If a handle resolves to a path already in-context (the requester has explicitly provided the file), reading it is permitted. Otherwise mark `[GAP]`.
 

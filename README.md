@@ -34,7 +34,7 @@ Default target: `./.eidolons/idg`. Then point your AI tooling at the installed `
 
 | Tooling | How to load |
 |---------|-------------|
-| **Claude Code** | `@.eidolons/idg/agent.md` or add to `CLAUDE.md` |
+| **Claude Code** | `@.eidolons/idg/PERSONA.md` or add to `CLAUDE.md` |
 | **Cursor** | Add path to `.cursorrules` or custom instructions |
 | **Windsurf** | Add path to `.windsurfrules` |
 | **Raw API / any LLM** | Load `SPEC.md` as the system prompt |
@@ -66,7 +66,7 @@ Custom document types are supported — the Scribe builds a skeleton from contex
 
 ## Design Principles
 
-**Minimal entry point**: `agent.md` is the only file loaded at start. Skills and templates load on-demand per phase — do not pre-load them.
+**Minimal entry point**: `PERSONA.md` is the only file loaded at start. Skills and templates load on-demand per phase — do not pre-load them.
 
 **Token-efficient**: Typical working set is ~2,200 tokens (entry point + one skill + one template). Leaves maximum context budget for source material.
 
@@ -99,3 +99,17 @@ See [DESIGN-RATIONALE.md](DESIGN-RATIONALE.md) for the full mapping of research 
 ---
 
 *Scribe*
+
+<!-- eiis-v3-package:start -->
+## EIIS v3 package
+
+This repository has the same self-contained package shape as every roster Eidolon:
+
+- `PERSONA.md` — bounded identity, triggers, authority, refusals, and handoffs.
+- `SPEC.md` — the authoritative methodology.
+- `skills/<methodology>/SKILL.md` — unique skill discovery entrypoints.
+- `manifest.json` — immutable package metadata and resource inventory.
+- `install.sh` — package-only installer; the nexus owns vendor adapters.
+
+See [INSTALL.md](INSTALL.md) for nexus and standalone installation.
+<!-- eiis-v3-package:end -->

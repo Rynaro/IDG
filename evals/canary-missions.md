@@ -85,7 +85,7 @@ provenance block records `author_agent: idg`.
 
 Using the IDG (Scribe) methodology at the TRANCE tier, synthesize a session chronicle
 from the following context. The document has six independent sections, so apply the G5
-gated parallel section-synthesis mode (`skills/section-parallel.md`).
+gated parallel section-synthesis mode (`skills/section-parallel/SKILL.md`).
 
 > **Document:** post-incident session chronicle with six independent sections —
 > 1. Incident summary, 2. Timeline, 3. Root cause, 4. Remediation, 5. Customer impact,
