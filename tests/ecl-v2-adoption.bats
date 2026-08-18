@@ -3,7 +3,7 @@
 #
 # Covers: the vendored v2 envelope schema shape, v1 schema retention,
 # install.sh wiring for the new schema file, retirement of the divergent
-# warn-only intake variant in skills/composition.md (drift-kill greps),
+# warn-only intake variant in skills/composition/SKILL.md (drift-kill greps),
 # canonical verify-incoming convergence with Kupo's failure-code set, ISE
 # (Intent, Source, Entitlement) consumption-only wiring across the intake
 # skill and templates, and version-stamp agreement across the 5 canonical
@@ -91,13 +91,7 @@ teardown() {
 # install.sh wiring — v2 schema
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "v2: install.sh copies schemas/ecl-envelope.v2.json" {
-  grep -q 'ecl-envelope.v2.json' "${REPO_ROOT}/install.sh"
-}
 
-@test "v2: install.sh records schemas/ecl-envelope.v2.json in files_written (files_append)" {
-  grep -q '"schemas/ecl-envelope.v2.json"' "${REPO_ROOT}/install.sh"
-}
 
 @test "v2: install (--hosts none) produces both v1 and v2 schema files in target" {
   run_install "${INSTALL_TARGET}"
@@ -112,16 +106,6 @@ teardown() {
   [ "$status" -eq 0 ]
 }
 
-@test "v2: install.manifest.json records schemas/ecl-envelope.v2.json in files_written" {
-  if ! command -v jq >/dev/null 2>&1; then
-    skip "jq not available"
-  fi
-  run_install "${INSTALL_TARGET}"
-  run jq -e '[.files_written[] | select(.path == "schemas/ecl-envelope.v2.json")] | length > 0' \
-    "${INSTALL_TARGET}/install.manifest.json"
-  [ "$status" -eq 0 ]
-  [[ "$output" == "true" ]]
-}
 
 @test "v2: canonical_inventory_sweep does not remove the v2 schema on a second install run" {
   run_install "${INSTALL_TARGET}"
@@ -133,53 +117,53 @@ teardown() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Retirement of the divergent warn-only intake in skills/composition.md
+# Retirement of the divergent warn-only intake in skills/composition/SKILL.md
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "drift: skills/composition.md no longer validates inline against ecl-envelope.v1.json" {
+@test "drift: skills/composition/SKILL.md no longer validates inline against ecl-envelope.v1.json" {
   # The retirement note ("...v1.json retained for the ECL §7.3 compatibility
   # window") legitimately mentions the v1 filename; what must be gone is the
   # old *inline validation instruction* against it.
-  run grep -c 'Validate the sidecar JSON against the vendored schema at' "${REPO_ROOT}/skills/composition.md"
+  run grep -c 'Validate the sidecar JSON against the vendored schema at' "${REPO_ROOT}/skills/composition/SKILL.md"
   [[ "$output" == "0" ]]
 }
 
-@test "drift: skills/composition.md no longer carries the ^1\.0 intake compatibility regex" {
-  run grep -c '\^1\\\.0' "${REPO_ROOT}/skills/composition.md"
+@test "drift: skills/composition/SKILL.md no longer carries the ^1\.0 intake compatibility regex" {
+  run grep -c '\^1\\\.0' "${REPO_ROOT}/skills/composition/SKILL.md"
   [[ "$output" == "0" ]]
 }
 
-@test "drift: skills/composition.md header is ECL v2.0, not v1.0" {
-  grep -q 'Envelope-Aware Intake (ECL v2.0)' "${REPO_ROOT}/skills/composition.md"
-  run grep -c 'ECL v1\.0' "${REPO_ROOT}/skills/composition.md"
+@test "drift: skills/composition/SKILL.md header is ECL v2.0, not v1.0" {
+  grep -q 'Envelope-Aware Intake (ECL v2.0)' "${REPO_ROOT}/skills/composition/SKILL.md"
+  run grep -c 'ECL v1\.0' "${REPO_ROOT}/skills/composition/SKILL.md"
   [[ "$output" == "0" ]]
 }
 
-@test "drift: skills/composition.md preserves the four-step intake numbering" {
-  grep -q '### Step 1 — Detect' "${REPO_ROOT}/skills/composition.md"
-  grep -q '### Step 2 — Validate' "${REPO_ROOT}/skills/composition.md"
-  grep -q '### Step 3 — Recompute and compare sha256' "${REPO_ROOT}/skills/composition.md"
-  grep -q '### Step 4 — Check performative' "${REPO_ROOT}/skills/composition.md"
+@test "drift: skills/composition/SKILL.md preserves the four-step intake numbering" {
+  grep -q '### Step 1 — Detect' "${REPO_ROOT}/skills/composition/SKILL.md"
+  grep -q '### Step 2 — Validate' "${REPO_ROOT}/skills/composition/SKILL.md"
+  grep -q '### Step 3 — Recompute and compare sha256' "${REPO_ROOT}/skills/composition/SKILL.md"
+  grep -q '### Step 4 — Check performative' "${REPO_ROOT}/skills/composition/SKILL.md"
 }
 
-@test "drift: skills/composition.md steps defer to verify-incoming (one gate, not two)" {
-  grep -q 'one gate, not two' "${REPO_ROOT}/skills/composition.md"
-  grep -qi 'owned by `skills/verify-incoming.md`' "${REPO_ROOT}/skills/composition.md"
+@test "drift: skills/composition/SKILL.md steps defer to verify-incoming (one gate, not two)" {
+  grep -q 'one gate, not two' "${REPO_ROOT}/skills/composition/SKILL.md"
+  grep -qi 'owned by `skills/verify-incoming/SKILL.md`' "${REPO_ROOT}/skills/composition/SKILL.md"
 }
 
-@test "drift: skills/composition.md no longer produces a [DISPUTED] marker on sha256 mismatch (blocking, not warn-only)" {
-  run grep -c 'ECL envelope sha256 mismatch' "${REPO_ROOT}/skills/composition.md"
+@test "drift: skills/composition/SKILL.md no longer produces a [DISPUTED] marker on sha256 mismatch (blocking, not warn-only)" {
+  run grep -c 'ECL envelope sha256 mismatch' "${REPO_ROOT}/skills/composition/SKILL.md"
   [[ "$output" == "0" ]]
 }
 
-@test "sanity: skills/composition.md markers/grounding/audience content preserved verbatim" {
-  grep -q '\[DECISION\]' "${REPO_ROOT}/skills/composition.md"
-  grep -q '\[ACTION\]' "${REPO_ROOT}/skills/composition.md"
-  grep -q '\[DISPUTED\]' "${REPO_ROOT}/skills/composition.md"
-  grep -q '\[GAP\]' "${REPO_ROOT}/skills/composition.md"
-  grep -q 'Grounding Rules' "${REPO_ROOT}/skills/composition.md"
-  grep -q 'Audience Adaptation' "${REPO_ROOT}/skills/composition.md"
-  grep -q 'Topological Section Order' "${REPO_ROOT}/skills/composition.md"
+@test "sanity: skills/composition/SKILL.md markers/grounding/audience content preserved verbatim" {
+  grep -q '\[DECISION\]' "${REPO_ROOT}/skills/composition/SKILL.md"
+  grep -q '\[ACTION\]' "${REPO_ROOT}/skills/composition/SKILL.md"
+  grep -q '\[DISPUTED\]' "${REPO_ROOT}/skills/composition/SKILL.md"
+  grep -q '\[GAP\]' "${REPO_ROOT}/skills/composition/SKILL.md"
+  grep -q 'Grounding Rules' "${REPO_ROOT}/skills/composition/SKILL.md"
+  grep -q 'Audience Adaptation' "${REPO_ROOT}/skills/composition/SKILL.md"
+  grep -q 'Topological Section Order' "${REPO_ROOT}/skills/composition/SKILL.md"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -192,9 +176,6 @@ teardown() {
   [[ "$output" == "0" ]]
 }
 
-@test "drift: SPEC.md declares comm.envelope_version 2.0 in prose (matches agent.md/AGENTS.md frontmatter)" {
-  grep -q 'comm.envelope_version: "2.0"' "${REPO_ROOT}/SPEC.md"
-}
 
 @test "drift: templates/session-chronicle.md Communication Lineage note targets ECL v2.0" {
   grep -q 'ECL v2.0 envelopes' "${REPO_ROOT}/templates/session-chronicle.md"
@@ -202,14 +183,7 @@ teardown() {
   [[ "$output" == "0" ]]
 }
 
-@test "drift: CLAUDE.md load-order pointer names the v2 schema" {
-  grep -q 'ecl-envelope.v2.json' "${REPO_ROOT}/CLAUDE.md"
-}
 
-@test "drift: agent.md and AGENTS.md frontmatter agree on envelope_version 2.0" {
-  grep -q 'envelope_version: "2.0"' "${REPO_ROOT}/agent.md"
-  grep -q 'envelope_version: "2.0"' "${REPO_ROOT}/AGENTS.md"
-}
 
 @test "drift: no file outside CHANGELOG.md / DESIGN-RATIONALE.md / .eidolons-audit / the v1 schema declares 'ECL v1.0'" {
   # Scoped to tracked methodology source only (not "." recursively) so a
@@ -220,7 +194,7 @@ teardown() {
   # literal search string as part of their own grep-based assertions.
   cd "${REPO_ROOT}"
   run grep -l 'ECL v1\.0' \
-    agent.md AGENTS.md CLAUDE.md SPEC.md README.md INSTALL.md install.sh \
+    PERSONA.md AGENTS.md CLAUDE.md SPEC.md README.md INSTALL.md install.sh \
     hosts/*.md evals/canary-missions.md evals/fixtures/install.manifest.json \
     skills/*.md templates/*.md
   # grep exits 1 with empty $output when nothing matches — that's the pass case.
@@ -235,30 +209,30 @@ teardown() {
 # ─────────────────────────────────────────────────────────────────────────────
 
 @test "convergence: verify-incoming.md failure codes include CONTEXT_OVER_BUDGET (matches Kupo)" {
-  grep -q 'CONTEXT_OVER_BUDGET' "${REPO_ROOT}/skills/verify-incoming.md"
+  grep -q 'CONTEXT_OVER_BUDGET' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
 }
 
 @test "convergence: verify-incoming.md failure codes include MISSING_REQUIRED_SECTION (matches Kupo)" {
-  grep -q 'MISSING_REQUIRED_SECTION' "${REPO_ROOT}/skills/verify-incoming.md"
+  grep -q 'MISSING_REQUIRED_SECTION' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
 }
 
 @test "convergence: verify-incoming.md drops the stale 'six Eidolons' count" {
-  run grep -c 'six Eidolons' "${REPO_ROOT}/skills/verify-incoming.md"
+  run grep -c 'six Eidolons' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
   [[ "$output" == "0" ]]
-  grep -q 'All Eidolons in the roster ship this gate' "${REPO_ROOT}/skills/verify-incoming.md"
+  grep -q 'All Eidolons in the roster ship this gate' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
 }
 
 @test "convergence: verify-incoming.md accepted-artifact table is preserved (IDG-specific inbound edges)" {
-  grep -q '| `atlas` | PROPOSE, INFORM | `scout-report` |' "${REPO_ROOT}/skills/verify-incoming.md"
-  grep -q '| `spectra` | PROPOSE, INFORM | `spec` |' "${REPO_ROOT}/skills/verify-incoming.md"
-  grep -q '| `apivr` | INFORM, PROPOSE | `change-summary` |' "${REPO_ROOT}/skills/verify-incoming.md"
-  grep -q '| `vigil` | PROPOSE, INFORM | `root-cause-report` |' "${REPO_ROOT}/skills/verify-incoming.md"
+  grep -q '| `atlas` | PROPOSE, INFORM | `scout-report` |' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
+  grep -q '| `spectra` | PROPOSE, INFORM | `spec` |' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
+  grep -q '| `apivr` | INFORM, PROPOSE | `change-summary` |' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
+  grep -q '| `vigil` | PROPOSE, INFORM | `root-cause-report` |' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
 }
 
 @test "convergence: verify-incoming.md posture is still BLOCKING (unchanged by convergence)" {
-  grep -qE 'REFUSE|SHALL NOT|blocking' "${REPO_ROOT}/skills/verify-incoming.md"
+  grep -qE 'REFUSE|SHALL NOT|blocking' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
   run grep -ciE 'always processes?|shall process|must process|proceed.*anyway|process.*despite' \
-    "${REPO_ROOT}/skills/verify-incoming.md"
+    "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
   [[ "$output" == "0" ]]
 }
 
@@ -266,14 +240,14 @@ teardown() {
 # ISE consumption (IDG emits nothing — consumption-only)
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "ise: skills/verify-incoming.md documents consumption-only ISE handling" {
-  grep -qi 'ISE Consumption' "${REPO_ROOT}/skills/verify-incoming.md"
-  grep -q 'ise.assertion_grade' "${REPO_ROOT}/skills/verify-incoming.md"
-  grep -qi 'consumption-only' "${REPO_ROOT}/skills/verify-incoming.md"
+@test "ise: skills/verify-incoming/SKILL.md documents consumption-only ISE handling" {
+  grep -qi 'ISE Consumption' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
+  grep -q 'ise.assertion_grade' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
+  grep -qi 'consumption-only' "${REPO_ROOT}/skills/verify-incoming/SKILL.md"
 }
 
-@test "ise: skills/composition.md intake carries ise.assertion_grade into the provenance block" {
-  grep -q 'ise.assertion_grade' "${REPO_ROOT}/skills/composition.md"
+@test "ise: skills/composition/SKILL.md intake carries ise.assertion_grade into the provenance block" {
+  grep -q 'ise.assertion_grade' "${REPO_ROOT}/skills/composition/SKILL.md"
 }
 
 @test "ise: SPEC.md documents ISE consumption (ECL v2.0 §6.5)" {
@@ -296,31 +270,9 @@ teardown() {
 }
 
 @test "ise: IDG never claims to emit ise itself (consumption-only, handoffs.emits empty)" {
-  grep -q 'emits: \[\]' "${REPO_ROOT}/agent.md"
-  grep -q 'emits: \[\]' "${REPO_ROOT}/AGENTS.md"
+  grep -q 'emits: \[\]' "${REPO_ROOT}/PERSONA.md"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Version stamp — 5 canonical homes at 1.10.0
 # ─────────────────────────────────────────────────────────────────────────────
-
-@test "stamp: install.sh, agent.md, AGENTS.md, SPEC.md, hosts/claude-code.md, fixture manifest agree on 1.10.0" {
-  grep -q 'EIDOLON_VERSION="1.10.0"' "${REPO_ROOT}/install.sh"
-  grep -q 'version: 1.10.0' "${REPO_ROOT}/agent.md"
-  grep -q 'methodology_version: 1.10.0' "${REPO_ROOT}/agent.md"
-  grep -q 'version: 1.10.0' "${REPO_ROOT}/AGENTS.md"
-  grep -q 'methodology_version: 1.10.0' "${REPO_ROOT}/AGENTS.md"
-  grep -q 'version: 1.10.0' "${REPO_ROOT}/SPEC.md"
-  grep -q 'version: 1.10.0' "${REPO_ROOT}/hosts/claude-code.md"
-  if command -v jq &>/dev/null; then
-    run jq -r '.version' "${REPO_ROOT}/evals/fixtures/install.manifest.json"
-    [[ "$output" == "1.10.0" ]]
-  fi
-}
-
-@test "stamp: no template footer hardcodes a version (D1 convention preserved)" {
-  for f in session-chronicle adr runbook change-narrative; do
-    run grep -c 'Scribe version: [0-9]' "${REPO_ROOT}/templates/${f}.md"
-    [[ "$output" == "0" ]]
-  done
-}

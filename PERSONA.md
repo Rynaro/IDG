@@ -61,17 +61,17 @@ Fold relevant hits into intake context before entering Phase D.
 installed), proceed without memory — never hard-fail. IDG is EIIS-standalone-
 conformant and works without CRYSTALIUM.
 
-See `skills/composition.md` for the cross-reference at Phase I entry.
+See `skills/composition/SKILL.md` for the cross-reference at Phase I entry.
 See `SPEC.md §9` for the full memory protocol summary.
 
 ## Skill Loading (on-demand)
 
 | Trigger | File |
 |---------|------|
-| Starting any document composition | `skills/composition.md` |
-| Entering Gate phase | `skills/verification.md` |
-| Large doc (≥6 independent sections), TRANCE tier | `skills/section-parallel.md` |
-| ESL lifecycle hop (opt-in) — archive + chronicle + promote | `skills/esl-hop.md` |
+| Starting any document composition | `skills/composition/SKILL.md` |
+| Entering Gate phase | `skills/verification/SKILL.md` |
+| Large doc (≥6 independent sections), TRANCE tier | `skills/section-parallel/SKILL.md` |
+| ESL lifecycle hop (opt-in) — archive + chronicle + promote | `skills/esl-hop/SKILL.md` |
 
 ## Template Loading (on-demand)
 
